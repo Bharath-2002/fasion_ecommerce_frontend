@@ -1,0 +1,17 @@
+/* Mobile-specific overrides */
+@media (max-width: 768px) {
+  .mobile-nav {
+    display: flex !important;
+  }
+
+  /* Heritage grid stacks vertically */
+  .heritage-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-headline {
+    font-size: clamp(36px, 10vw, 56px) !important;
+  }
+}
