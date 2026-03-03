@@ -1,52 +1,33 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Curated color palettes for visual card variety using only brand colors
-const cards = [
+// Real saree/textile images from Unsplash (free, no auth needed)
+export const cards = [
   {
     id: 1,
-    bg: 'linear-gradient(135deg, #9D683B 0%, #DEC8B5 100%)',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&q=80',
     label: 'Kanjivaram',
     accent: '#EAEBE0',
   },
   {
     id: 2,
-    bg: 'linear-gradient(160deg, #DEC8B5 0%, #9D683B 60%, #000 100%)',
+    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=800&q=80',
     label: 'Bridal',
     accent: '#EAEBE0',
   },
   {
     id: 3,
-    bg: 'linear-gradient(120deg, #EAEBE0 0%, #DEC8B5 50%, #9D683B 100%)',
+    // Heritage card — this one zooms into the hero
+    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=1200&q=85',
     label: 'Heritage',
-    accent: '#9D683B',
+    accent: '#EAEBE0',
   },
 ];
 
-const SilkPattern = () => (
-  <svg
-    width="100%"
-    height="100%"
-    style={{ position: 'absolute', inset: 0, opacity: 0.08 }}
-    preserveAspectRatio="xMidYMid slice"
-  >
-    <defs>
-      <pattern id="silk" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-        <circle cx="30" cy="30" r="1.5" fill="#9D683B" />
-        <circle cx="0" cy="0" r="1.5" fill="#9D683B" />
-        <circle cx="60" cy="0" r="1.5" fill="#9D683B" />
-        <circle cx="0" cy="60" r="1.5" fill="#9D683B" />
-        <circle cx="60" cy="60" r="1.5" fill="#9D683B" />
-        <line x1="0" y1="30" x2="60" y2="30" stroke="#9D683B" strokeWidth="0.4" />
-        <line x1="30" y1="0" x2="30" y2="60" stroke="#9D683B" strokeWidth="0.4" />
-        <rect x="20" y="20" width="20" height="20" fill="none" stroke="#9D683B" strokeWidth="0.3" />
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#silk)" />
-  </svg>
-);
+// The hero image is always the top (last) card
+export const HERO_IMAGE = cards[cards.length - 1].image;
 
-const BorderMotive = ({ color }) => (
+const BorderMotive = () => (
   <div
     style={{
       position: 'absolute',
@@ -54,13 +35,12 @@ const BorderMotive = ({ color }) => (
       left: 0,
       right: 0,
       height: '40px',
-      borderTop: `1px solid ${color}`,
+      borderTop: '1px solid rgba(234,235,224,0.4)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '12px',
       padding: '0 24px',
-      opacity: 0.6,
     }}
   >
     {Array.from({ length: 9 }).map((_, i) => (
@@ -70,8 +50,8 @@ const BorderMotive = ({ color }) => (
           width: i === 4 ? '8px' : '4px',
           height: i === 4 ? '8px' : '4px',
           borderRadius: '50%',
-          background: color,
-          opacity: i === 4 ? 1 : 0.5,
+          background: '#EAEBE0',
+          opacity: i === 4 ? 0.7 : 0.35,
         }}
       />
     ))}
@@ -79,21 +59,25 @@ const BorderMotive = ({ color }) => (
 );
 
 export default function CardStackEntrance({ onComplete }) {
-  const [phase, setPhase] = useState('cards'); // 'cards' | 'headline' | 'done'
+  // phases: 'rising' → 'settled' → 'headline' → 'expanding' → 'done'
+  const [phase, setPhase] = useState('rising');
 
   useEffect(() => {
-    // After cards settle (~1.8s), show headline
-    const t1 = setTimeout(() => setPhase('headline'), 1800);
-    // After headline (800ms fade), signal done
-    const t2 = setTimeout(() => {
+    // Cards finish rising → settled
+    const t1 = setTimeout(() => setPhase('settled'), 1600);
+    // Show headline
+    const t2 = setTimeout(() => setPhase('headline'), 1800);
+    // Top card begins expanding to fill screen
+    const t3 = setTimeout(() => setPhase('expanding'), 3200);
+    // Signal parent (main page fades in underneath)
+    const t4 = setTimeout(() => {
       setPhase('done');
       onComplete?.();
-    }, 3800);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
+    }, 4000);
+    return () => [t1, t2, t3, t4].forEach(clearTimeout);
   }, [onComplete]);
+
+  const isExpanding = phase === 'expanding' || phase === 'done';
 
   return (
     <div
@@ -109,18 +93,8 @@ export default function CardStackEntrance({ onComplete }) {
         overflow: 'hidden',
       }}
     >
-      {/* Thin top border line */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '2px',
-          background: '#9D683B',
-          opacity: 0.4,
-        }}
-      />
+      {/* Thin top accent */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#9D683B', opacity: 0.4 }} />
 
       {/* Card stack */}
       <div
@@ -133,29 +107,71 @@ export default function CardStackEntrance({ onComplete }) {
         }}
       >
         {cards.map((card, i) => {
+          const isTop = i === cards.length - 1;
           const offset = (cards.length - 1 - i) * 14;
           const rotation = i === 0 ? -1.5 : i === 1 ? 0 : 1.5;
 
           return (
             <motion.div
               key={card.id}
-              initial={{ y: 120 + i * 30, opacity: 0, rotate: rotation }}
-              animate={{ y: -offset, opacity: 1, rotate: rotation * 0.4 }}
-              transition={{
-                duration: 1.4,
-                delay: i * 0.12,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              initial={{ y: 140 + i * 30, opacity: 0, rotate: rotation }}
+              animate={
+                isTop && isExpanding
+                  ? {
+                      // Expand hero card to fill the entire viewport
+                      y: 0,
+                      x: 0,
+                      rotate: 0,
+                      opacity: 1,
+                      top: 0,
+                      left: 0,
+                      width: '100vw',
+                      height: '100vh',
+                      borderRadius: 0,
+                    }
+                  : {
+                      y: -offset,
+                      opacity: 1,
+                      rotate: rotation * 0.4,
+                    }
+              }
+              transition={
+                isTop && isExpanding
+                  ? { duration: 0.9, ease: [0.22, 1, 0.36, 1] }
+                  : { duration: 1.4, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }
+              }
               style={{
                 position: 'absolute',
                 inset: 0,
                 borderRadius: '4px',
-                background: card.bg,
-                boxShadow: `0 ${8 + i * 4}px ${24 + i * 8}px rgba(157,104,59,${0.12 + i * 0.06})`,
                 overflow: 'hidden',
+                boxShadow: isTop
+                  ? `0 ${8 + i * 4}px ${24 + i * 8}px rgba(157,104,59,${0.12 + i * 0.06})`
+                  : `0 ${8 + i * 4}px ${24 + i * 8}px rgba(157,104,59,${0.08 + i * 0.04})`,
+                zIndex: isTop ? 10 : i,
               }}
             >
-              <SilkPattern />
+              {/* Real image */}
+              <img
+                src={card.image}
+                alt={card.label}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  display: 'block',
+                }}
+              />
+
+              {/* Dark overlay for text legibility */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.4) 100%)',
+                }}
+              />
 
               {/* Top label */}
               <div
@@ -165,89 +181,76 @@ export default function CardStackEntrance({ onComplete }) {
                   left: '24px',
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: '10px',
-                  letterSpacing: '0.25em',
+                  letterSpacing: '0.28em',
                   textTransform: 'uppercase',
-                  color: card.accent,
+                  color: '#EAEBE0',
                   fontWeight: 300,
-                  opacity: 0.8,
+                  opacity: 0.9,
+                  zIndex: 1,
                 }}
               >
                 {card.label}
               </div>
 
-              {/* Center ornament */}
+              {/* Thin right border line — saree-inspired */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -54%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '10px',
+                  top: '16px',
+                  right: '16px',
+                  bottom: '16px',
+                  width: '1px',
+                  background: 'rgba(234,235,224,0.25)',
                 }}
-              >
-                <div
-                  style={{
-                    width: '40px',
-                    height: '1px',
-                    background: card.accent,
-                    opacity: 0.5,
-                  }}
-                />
-                <div
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    border: `1px solid ${card.accent}`,
-                    transform: 'rotate(45deg)',
-                    opacity: 0.7,
-                  }}
-                />
-                <div
-                  style={{
-                    width: '40px',
-                    height: '1px',
-                    background: card.accent,
-                    opacity: 0.5,
-                  }}
-                />
-              </div>
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  left: '16px',
+                  bottom: '16px',
+                  width: '1px',
+                  background: 'rgba(234,235,224,0.25)',
+                }}
+              />
 
-              <BorderMotive color={card.accent} />
+              <BorderMotive />
             </motion.div>
           );
         })}
       </div>
 
-      {/* Brand headline */}
+      {/* Brand headline — fades in then fades out as card expands */}
       <AnimatePresence>
         {phase === 'headline' && (
           <motion.div
-            initial={{ opacity: 0, letterSpacing: '0.1em' }}
-            animate={{ opacity: 1, letterSpacing: '0.22em' }}
-            exit={{ opacity: 0 }}
+            key="headline"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.4 } }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             style={{
               textAlign: 'center',
               position: 'absolute',
-              bottom: '14%',
+              bottom: '12%',
+              pointerEvents: 'none',
             }}
           >
-            <div
+            <motion.div
+              initial={{ letterSpacing: '0.1em' }}
+              animate={{ letterSpacing: '0.22em' }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 fontFamily: "'Playfair Display', serif",
-                fontSize: 'clamp(28px, 5vw, 52px)',
+                fontSize: 'clamp(26px, 5vw, 50px)',
                 fontWeight: 400,
                 color: '#000',
-                letterSpacing: '0.22em',
                 lineHeight: 1.1,
                 textTransform: 'uppercase',
               }}
             >
               Kanchi Silks
-            </div>
+            </motion.div>
             <div
               style={{
                 fontFamily: "'DM Sans', sans-serif",
@@ -265,18 +268,22 @@ export default function CardStackEntrance({ onComplete }) {
         )}
       </AnimatePresence>
 
-      {/* Thin bottom border */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '2px',
-          background: '#9D683B',
-          opacity: 0.4,
-        }}
-      />
+      {/* Ivory fade-out overlay — dissolves the intro once card is full-screen */}
+      <AnimatePresence>
+        {isExpanding && (
+          <motion.div
+            key="fadeout"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+            style={{ position: 'absolute', inset: 0, background: '#EAEBE0', zIndex: 20, pointerEvents: 'none' }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Bottom accent */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#9D683B', opacity: 0.4 }} />
     </div>
   );
 }
