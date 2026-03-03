@@ -53,8 +53,8 @@ export default function HeroSection() {
   const overlayOpacity = useTransform(scrollYProgress, [0.4, 0.62], [0, 1]);
   const overlayY       = useTransform(scrollYProgress, [0.4, 0.62], [24, 0]);
 
-  // Scrim deepens as card fills screen
-  const scrimOpacity = useTransform(scrollYProgress, [0.1, 0.55], [0.15, 0.5]);
+  // Scrim deepens as card fills screen (starts at 0 so the initial state matches the card stack handoff)
+  const scrimOpacity = useTransform(scrollYProgress, [0.1, 0.55], [0, 0.5]);
 
   return (
     <section ref={containerRef} style={{ position: 'relative', height: '280vh' }}>
