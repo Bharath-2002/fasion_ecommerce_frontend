@@ -1,12 +1,30 @@
 /* Mobile-specific overrides */
 @media (max-width: 768px) {
-  .mobile-nav {
+  /* Hide desktop nav links — hamburger handles navigation */
+  .nav-links {
+    display: none !important;
+  }
+
+  /* Show hamburger button */
+  .nav-hamburger {
     display: flex !important;
+  }
+
+  /* Mobile dropdown only visible on mobile */
+  .mobile-menu {
+    display: flex;
   }
 
   /* Heritage grid stacks vertically */
   .heritage-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Hide mobile-only elements on desktop */
+  .mobile-menu {
+    display: none !important;
   }
 }
 

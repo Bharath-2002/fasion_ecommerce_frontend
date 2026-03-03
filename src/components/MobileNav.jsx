@@ -1,3 +1,5 @@
+import LiquidGlass from 'liquid-glass-react';
+
 export default function MobileNav() {
   const items = [
     {
@@ -45,53 +47,72 @@ export default function MobileNav() {
   ];
 
   return (
-    <nav
+    <div
       style={{
         display: 'none',
         position: 'fixed',
         bottom: '16px',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        left: 0,
+        right: 0,
         zIndex: 200,
-        background: '#DEC8B5',
-        borderRadius: '40px',
-        padding: '12px 24px',
-        boxShadow: '0 8px 32px rgba(157,104,59,0.15)',
-        border: '1px solid rgba(157,104,59,0.2)',
-        gap: '28px',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
       }}
       className="mobile-nav"
     >
-      {items.map((item) => (
-        <a
-          key={item.label}
-          href="#"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            color: '#9D683B',
-            opacity: 0.6,
-            transition: 'opacity 0.25s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = 0.6)}
+      <div style={{ pointerEvents: 'auto' }}>
+        <LiquidGlass
+          cornerRadius={40}
+          blurAmount={0.15}
+          displacementScale={60}
+          elasticity={0.16}
+          saturation={130}
+          overLight={false}
         >
-          {item.icon}
-          <span
+          <div
             style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: '9px',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              fontWeight: 300,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '28px',
+              padding: '12px 28px',
             }}
           >
-            {item.label}
-          </span>
-        </a>
-      ))}
-    </nav>
+            {items.map((item) => (
+              <a
+                key={item.label}
+                href="#"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: '#1A0E08',
+                  opacity: 0.7,
+                  textDecoration: 'none',
+                  transition: 'opacity 0.25s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = 0.7)}
+              >
+                {item.icon}
+                <span
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: '9px',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    fontWeight: 300,
+                  }}
+                >
+                  {item.label}
+                </span>
+              </a>
+            ))}
+          </div>
+        </LiquidGlass>
+      </div>
+    </div>
   );
 }
