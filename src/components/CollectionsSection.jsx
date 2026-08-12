@@ -1,429 +1,276 @@
-import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef, useState, useLayoutEffect } from 'react';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 
+/* Product photography lives in public/collections/ and is served from the site
+   root. Each card crops its image to 3:4; if one fails to load the card falls
+   back to a woven pattern in the brand palette rather than a broken-image icon.
+   7.jpeg is currently spare — six cards, seven photos. */
 const collections = [
   {
-    id: 1,
-    name: 'Bridal Kanjivaram',
-    tagline: 'For the dawn of forever',
-    description:
-      'Handwoven over forty days by master weavers of Kanchipuram. Pure mulberry silk interlaced with real zari.',
-    colorA: '#9D683B',
-    colorB: '#DEC8B5',
+    id: 'bridal',
+    name: 'Bridal & Wedding',
+    tagline: 'For the big day',
+    image: '/collections/3.jpeg',
+    alt: 'Bridal saree in molten orange and gold brocade with a deep purple zari border',
   },
   {
-    id: 2,
-    name: 'Temple Heritage',
-    tagline: 'Devotion made visible',
-    description:
-      'Inspired by the celestial frescoes of Brihadeeswara. Each motif a prayer, each border a procession.',
-    colorA: '#DEC8B5',
-    colorB: '#EAEBE0',
+    id: 'silk',
+    name: 'Pure Silk',
+    tagline: 'Kanchipuram, Banarasi & more',
+    image: '/collections/2.jpeg',
+    alt: 'Peacock-blue silk saree with a magenta contrast border of gold zari',
   },
   {
-    id: 3,
-    name: 'Pallu Narratives',
-    tagline: 'Stories at the hem',
-    description:
-      'The pallu — where mythology meets craftsmanship. Peacocks, lotuses, and ancient geometric poetry.',
-    colorA: '#000',
-    colorB: '#9D683B',
+    id: 'festive',
+    name: 'Party & Festive',
+    tagline: 'Dressed for the occasion',
+    image: '/collections/7.jpeg',
+    alt: 'Sea-green tissue silk saree draped to show a heavy gold zari pallu with floral motifs',
   },
   {
-    id: 4,
-    name: 'Contemporary Silk',
-    tagline: 'Heritage without nostalgia',
-    description:
-      'For women who carry tradition lightly. Understated weaves with modern sensibility and timeless finish.',
-    colorA: '#EAEBE0',
-    colorB: '#DEC8B5',
+    id: 'cotton',
+    name: 'Daily Cotton',
+    tagline: 'Light, breathable, everyday',
+    image: '/collections/6.jpeg',
+    alt: 'Mint green cotton saree with a fine silver border and a printed paisley pallu',
+  },
+  {
+    id: 'printed',
+    name: 'Printed Casuals',
+    tagline: 'Easy on the wallet',
+    image: '/collections/4.jpeg',
+    alt: 'Black and cream chequered saree with a thin gold border, draped on a mannequin',
+  },
+  {
+    id: 'handloom',
+    name: 'Handloom & Dyed',
+    tagline: 'Small batch, hand-finished',
+    image: '/collections/5.jpeg',
+    alt: 'Indigo blue saree with white resist-dyed diamond patterns and a silver border',
   },
 ];
 
-// SVG panel visual for each collection
-const CollectionVisual = ({ colorA, colorB, index }) => {
-  const patterns = [
-    // Bridal - dense floral medallion
-    (
-      <g key="bridal">
-        <defs>
-          <radialGradient id={`g${index}`} cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor={colorA} />
-            <stop offset="100%" stopColor={colorB} />
-          </radialGradient>
-          <pattern id={`p${index}`} x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-            <circle cx="30" cy="30" r="20" fill="none" stroke={colorA} strokeWidth="0.5" opacity="0.3" />
-            <circle cx="30" cy="30" r="10" fill="none" stroke={colorA} strokeWidth="0.4" opacity="0.4" />
-            {Array.from({ length: 6 }).map((_, i) => {
-              const a = (i * Math.PI * 2) / 6;
-              return (
-                <circle key={i} cx={30 + Math.cos(a) * 14} cy={30 + Math.sin(a) * 14} r="3" fill={colorA} opacity="0.25" />
-              );
-            })}
-          </pattern>
-        </defs>
-        <rect width="540" height="760" fill={`url(#g${index})`} />
-        <rect width="540" height="760" fill={`url(#p${index})`} />
-        {/* Large medallion */}
-        <g transform="translate(270,360)">
-          {Array.from({ length: 12 }).map((_, i) => {
-            const a = (i * Math.PI * 2) / 12;
-            const r = 120;
-            return (
-              <ellipse key={i} cx={Math.cos(a) * r} cy={Math.sin(a) * r}
-                rx="18" ry="36"
-                fill="none" stroke={colorB} strokeWidth="0.8" opacity="0.4"
-                transform={`rotate(${(i * 360) / 12} ${Math.cos(a) * r} ${Math.sin(a) * r})`}
-              />
-            );
-          })}
-          <circle cx="0" cy="0" r="50" fill="none" stroke={colorB} strokeWidth="1" opacity="0.5" />
-          <polygon points="0,-24 14,0 0,24 -14,0" fill={colorB} opacity="0.5" />
-        </g>
-      </g>
-    ),
-    // Temple - chevron & mandala
-    (
-      <g key="temple">
-        <defs>
-          <linearGradient id={`g${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={colorA} />
-            <stop offset="100%" stopColor={colorB} />
-          </linearGradient>
-          <pattern id={`p${index}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <polygon points="20,2 38,20 20,38 2,20" fill="none" stroke="#9D683B" strokeWidth="0.4" opacity="0.3" />
-            <circle cx="20" cy="20" r="2" fill="#9D683B" opacity="0.3" />
-          </pattern>
-        </defs>
-        <rect width="540" height="760" fill={`url(#g${index})`} />
-        <rect width="540" height="760" fill={`url(#p${index})`} />
-        {/* Temple arch motifs */}
-        {[180, 270, 360].map((y, i) => (
-          <g key={i} transform={`translate(270, ${y})`}>
-            <path d="M -60,60 L -60,-20 Q -60,-60 0,-60 Q 60,-60 60,-20 L 60,60 Z"
-              fill="none" stroke="#9D683B" strokeWidth="0.8" opacity={0.2 + i * 0.1} />
-          </g>
-        ))}
-      </g>
-    ),
-    // Pallu - peacock / nature
-    (
-      <g key="pallu">
-        <defs>
-          <radialGradient id={`g${index}`} cx="30%" cy="30%" r="80%">
-            <stop offset="0%" stopColor={colorB} />
-            <stop offset="100%" stopColor={colorA} />
-          </radialGradient>
-          <pattern id={`p${index}`} x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
-            <line x1="25" y1="0" x2="25" y2="50" stroke={colorB} strokeWidth="0.4" opacity="0.3" />
-            <line x1="0" y1="25" x2="50" y2="25" stroke={colorB} strokeWidth="0.4" opacity="0.3" />
-            <circle cx="25" cy="25" r="1.5" fill={colorB} opacity="0.4" />
-          </pattern>
-        </defs>
-        <rect width="540" height="760" fill={`url(#g${index})`} />
-        <rect width="540" height="760" fill={`url(#p${index})`} />
-        {/* Stylised peacock eye / feather centers */}
-        {[[180, 200], [350, 400], [140, 560]].map(([cx, cy], i) => (
-          <g key={i} transform={`translate(${cx}, ${cy})`}>
-            <ellipse cx="0" cy="0" rx="28" ry="48" fill="none" stroke={colorB} strokeWidth="0.8" opacity="0.4" />
-            <ellipse cx="0" cy="0" rx="12" ry="20" fill="none" stroke={colorB} strokeWidth="0.6" opacity="0.5" />
-            <circle cx="0" cy="0" r="5" fill={colorB} opacity="0.35" />
-          </g>
-        ))}
-      </g>
-    ),
-    // Contemporary - minimal geometry
-    (
-      <g key="contemporary">
-        <defs>
-          <linearGradient id={`g${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={colorA} />
-            <stop offset="100%" stopColor={colorB} />
-          </linearGradient>
-          <pattern id={`p${index}`} x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="15" x2="30" y2="15" stroke="#9D683B" strokeWidth="0.3" opacity="0.25" />
-            <line x1="15" y1="0" x2="15" y2="30" stroke="#9D683B" strokeWidth="0.3" opacity="0.25" />
-          </pattern>
-        </defs>
-        <rect width="540" height="760" fill={`url(#g${index})`} />
-        <rect width="540" height="760" fill={`url(#p${index})`} />
-        {/* Clean geometric strips */}
-        <rect x="0" y="0" width="540" height="60" fill="rgba(157,104,59,0.12)" />
-        <rect x="0" y="700" width="540" height="60" fill="rgba(157,104,59,0.12)" />
-        <line x1="0" y1="60" x2="540" y2="60" stroke="#9D683B" strokeWidth="1" opacity="0.4" />
-        <line x1="0" y1="700" x2="540" y2="700" stroke="#9D683B" strokeWidth="1" opacity="0.4" />
-        <g transform="translate(270,380)">
-          {[60, 100, 140].map((r, i) => (
-            <rect key={i} x={-r} y={-r} width={r * 2} height={r * 2}
-              fill="none" stroke="#9D683B" strokeWidth="0.6" opacity={0.25 - i * 0.05}
-              transform={`rotate(${i * 15})`}
-            />
-          ))}
-        </g>
-      </g>
-    ),
-  ];
-
-  return (
-    <svg width="540" height="760" viewBox="0 0 540 760" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-      {/* Sides border */}
-      <rect x="0" y="0" width="6" height="760" fill="#9D683B" opacity="0.4" />
-      <rect x="534" y="0" width="6" height="760" fill="#9D683B" opacity="0.4" />
-      {patterns[index % 4]}
-    </svg>
-  );
-};
-
-function CollectionPanel({ collection, index }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.05, 1]);
-
+/* Shown when a product image fails to load. */
+function WovenFallback() {
   return (
     <div
-      ref={ref}
+      aria-hidden="true"
       style={{
-        position: 'relative',
-        flexShrink: 0,
-        width: 'clamp(280px, 36vw, 480px)',
-        height: '100%',
-        overflow: 'hidden',
-        borderRight: index < collections.length - 1 ? '1px solid rgba(157,104,59,0.25)' : 'none',
+        position: 'absolute',
+        inset: 0,
+        background: `
+          repeating-linear-gradient(90deg, var(--beige) 0 3px, var(--ivory-dark) 3px 6px),
+          repeating-linear-gradient(0deg, rgba(0,0,0,0.12) 0 3px, transparent 3px 6px)
+        `,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
-      {/* Image with zoom */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          scale,
-          transformOrigin: 'center center',
-        }}
-      >
-        <CollectionVisual colorA={collection.colorA} colorB={collection.colorB} index={index} />
-      </motion.div>
-
-      {/* Vertical name — side label */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          right: '20px',
-          transform: 'translateY(-50%) rotate(90deg)',
-          transformOrigin: 'center center',
-          whiteSpace: 'nowrap',
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: '10px',
-          fontWeight: 300,
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          color: '#9D683B',
-          opacity: 0.7,
-          zIndex: 2,
-        }}
-      >
-        {collection.name}
-      </div>
-
-      {/* Bottom caption overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: '48px 32px 36px',
-          background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)',
-          zIndex: 2,
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '10px',
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: '#DEC8B5',
-            fontWeight: 300,
-            marginBottom: '8px',
-            opacity: 0.9,
-          }}
-        >
-          {collection.tagline}
-        </p>
-        <h3
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 'clamp(20px, 2.4vw, 32px)',
-            fontWeight: 400,
-            color: '#EAEBE0',
-            letterSpacing: '0.02em',
-            margin: '0 0 12px',
-            lineHeight: 1.1,
-          }}
-        >
-          {collection.name}
-        </h3>
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '13px',
-            fontWeight: 300,
-            color: '#DEC8B5',
-            lineHeight: 1.8,
-            margin: '0 0 20px',
-            opacity: 0.85,
-            maxWidth: '280px',
-          }}
-        >
-          {collection.description}
-        </p>
-        <button
-          style={{
-            background: 'transparent',
-            border: '1px solid rgba(222,200,181,0.6)',
-            color: '#DEC8B5',
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '10px',
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            fontWeight: 300,
-            padding: '12px 24px',
-            cursor: 'pointer',
-            transition: 'background 0.3s, border-color 0.3s',
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = 'rgba(222,200,181,0.12)';
-            e.target.style.borderColor = 'rgba(222,200,181,0.9)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'transparent';
-            e.target.style.borderColor = 'rgba(222,200,181,0.6)';
-          }}
-        >
-          Explore
-        </button>
-      </div>
+      {/* Literal hex, not var() — CSS variables in SVG presentation attributes
+          have patchy support, and this path only runs after an image failed. */}
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style={{ opacity: 0.5 }}>
+        <circle cx="36" cy="36" r="26" stroke="#8A8A8A" strokeWidth="1" />
+        <circle cx="36" cy="36" r="14" stroke="#8A8A8A" strokeWidth="1" />
+        <polygon points="36,22 46,36 36,50 26,36" fill="#8A8A8A" opacity="0.35" />
+      </svg>
     </div>
   );
 }
 
+function CollectionCard({ collection, index }) {
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <article className="ks-card">
+      <div className="ks-card-frame">
+        {failed ? (
+          <WovenFallback />
+        ) : (
+          <img
+            src={collection.image}
+            alt={collection.alt}
+            loading={index < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+            onError={() => setFailed(true)}
+          />
+        )}
+
+        <span className="ks-index ks-frost">{String(index + 1).padStart(2, '0')}</span>
+
+        <div className="ks-glass ks-frost">
+          {/* minWidth:0 lets long names wrap instead of forcing the flex row
+              wider than the card and squashing the pill. */}
+          <div style={{ minWidth: 0 }}>
+            <h3
+              style={{
+                fontFamily: 'var(--serif)',
+                fontSize: 'clamp(14px, 1.4vw, 18px)',
+                fontWeight: 700,
+                color: 'var(--on-glass)',
+                letterSpacing: '0.02em',
+                textTransform: 'uppercase',
+                lineHeight: 1.25,
+                margin: '0 0 5px',
+              }}
+            >
+              {collection.name}
+            </h3>
+            <p
+              style={{
+                fontFamily: 'var(--serif)',
+                fontSize: '10px',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: 'var(--on-glass-dim)',
+                fontWeight: 500,
+                margin: 0,
+              }}
+            >
+              {collection.tagline}
+            </p>
+          </div>
+
+          <a href={`#collection-${collection.id}`} className="ks-pill">
+            Explore
+          </a>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function CollectionsSection() {
-  const containerRef = useRef(null);
+  const sectionRef = useRef(null);
+  const trackRef = useRef(null);
+  const reduceMotion = useReducedMotion();
+
+  /* How far the track has to travel to bring its right edge into view. The
+     section is then made that much taller than the viewport, so one pixel of
+     vertical scroll moves the track one pixel sideways. Measured rather than
+     computed from assumed card widths — that arithmetic was what broke on
+     resize before. */
+  const [measured, setMeasured] = useState(0);
+  // Derived rather than stored, so preferring reduced motion needs no setState.
+  const distance = reduceMotion ? 0 : measured;
+
+  useLayoutEffect(() => {
+    if (reduceMotion) return undefined;
+
+    const measure = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      const next = Math.max(0, track.scrollWidth - window.innerWidth);
+      // Bail out when unchanged: this also fires on the resize the new section
+      // height causes, and an unguarded set would cascade.
+      setMeasured((prev) => (prev === next ? prev : next));
+    };
+
+    // No synchronous first call — ResizeObserver delivers an initial
+    // observation on observe(), which also catches images finishing decode.
+    const observer = new ResizeObserver(measure);
+    if (trackRef.current) observer.observe(trackRef.current);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [reduceMotion]);
+
   const { scrollYProgress } = useScroll({
-    target: containerRef,
+    target: sectionRef,
     offset: ['start start', 'end end'],
   });
-
-  // Total horizontal distance: panels - viewport
-  const panelWidth = typeof window !== 'undefined' ? Math.min(480, window.innerWidth * 0.36) : 480;
-  const totalWidth = panelWidth * collections.length;
-  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1440;
-  const maxTranslate = -(totalWidth - viewportWidth + 200);
-
-  const x = useTransform(scrollYProgress, [0, 1], [0, maxTranslate]);
-
-  const headingOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-  const headingY = useTransform(scrollYProgress, [0, 0.15], [0, -20]);
+  const x = useTransform(scrollYProgress, [0, 1], [0, -distance]);
 
   return (
     <section
-      ref={containerRef}
+      id="collections"
+      ref={sectionRef}
       style={{
         position: 'relative',
-        height: `${collections.length * 100 + 50}vh`,
-        background: '#EAEBE0',
+        background: 'var(--ivory)',
+        borderTop: '1px solid var(--rule)',
+        // Extra height IS the horizontal travel; 100vh alone when not pinning.
+        height: distance > 0 ? `calc(100vh + ${distance}px)` : 'auto',
       }}
     >
-      {/* Section intro — fades as scroll begins */}
-      <motion.div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-          padding: '80px 0 0 clamp(32px, 8vw, 120px)',
-          pointerEvents: 'none',
-          opacity: headingOpacity,
-          y: headingY,
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '11px',
-            letterSpacing: '0.3em',
-            textTransform: 'uppercase',
-            color: '#9D683B',
-            fontWeight: 300,
-            marginBottom: '16px',
-          }}
-        >
-          The Collections
-        </p>
-        <h2
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 'clamp(36px, 6vw, 80px)',
-            fontWeight: 400,
-            color: '#000',
-            letterSpacing: '0.02em',
-            lineHeight: 1.0,
-            margin: 0,
-          }}
-        >
-          Silk as
-          <br />
-          <em style={{ fontStyle: 'italic', color: '#9D683B' }}>Language</em>
-        </h2>
-        <div
-          style={{
-            marginTop: '20px',
-            width: '48px',
-            height: '1px',
-            background: '#9D683B',
-            opacity: 0.5,
-          }}
-        />
-      </motion.div>
-
-      {/* Sticky horizontal scroll container */}
       <div
         style={{
-          position: 'sticky',
+          position: distance > 0 ? 'sticky' : 'static',
           top: 0,
-          height: '100vh',
+          height: distance > 0 ? '100vh' : 'auto',
           overflow: 'hidden',
-          marginTop: '-100vh',
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: 'clamp(24px, 3.5vw, 48px)',
+          paddingTop: 'clamp(28px, 4vw, 56px)',
+          paddingBottom: 'clamp(28px, 4vw, 56px)',
         }}
       >
+        {/* Header — stays put while the track slides beneath it */}
+        <div style={{ padding: '0 var(--gutter)', maxWidth: '760px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '18px' }}>
+            <div style={{ width: '48px', height: '1px', background: 'var(--brown)', opacity: 0.6 }} />
+            <p
+              style={{
+                fontFamily: 'var(--sans)',
+                fontSize: '11px',
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                color: 'var(--brown-deep)',
+                fontWeight: 400,
+              }}
+            >
+              Shop by Category
+            </p>
+          </div>
+
+          <h2
+            style={{
+              fontFamily: 'var(--serif)',
+              fontSize: 'clamp(30px, 4.5vw, 60px)',
+              fontWeight: 700,
+              color: 'var(--black)',
+              letterSpacing: '-0.02em',
+              textTransform: 'uppercase',
+              lineHeight: 1.02,
+              margin: '0 0 14px',
+            }}
+          >
+            Every Occasion, <span style={{ color: 'var(--brown-deep)' }}>Every Budget</span>
+          </h2>
+
+          <p
+            style={{
+              fontFamily: 'var(--sans)',
+              fontSize: 'clamp(14px, 1.4vw, 16px)',
+              fontWeight: 300,
+              color: 'var(--black)',
+              opacity: 0.7,
+              lineHeight: 1.7,
+              maxWidth: '52ch',
+              margin: 0,
+            }}
+          >
+            From easy cotton drapes to bridal silk, across six categories and every price point.
+            Each piece is picked by hand, and new arrivals land on the racks every week.
+          </p>
+        </div>
+
+        {/* Track — translated by page scroll when pinned, a native swipe rail
+            when the visitor prefers reduced motion. */}
         <motion.div
-          style={{
-            display: 'flex',
-            height: 'min(760px, 85vh)',
-            x,
-            paddingLeft: 'clamp(32px, 12vw, 160px)',
-            paddingRight: '80px',
-            gap: 0,
-          }}
+          ref={trackRef}
+          className={reduceMotion ? 'ks-track ks-track--static' : 'ks-track'}
+          style={reduceMotion ? undefined : { x }}
         >
-          {collections.map((col, i) => (
-            <CollectionPanel key={col.id} collection={col} index={i} />
+          {collections.map((collection, i) => (
+            <CollectionCard key={collection.id} collection={collection} index={i} />
           ))}
         </motion.div>
-
-        {/* Thin top divider */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '1px',
-            background: 'rgba(157,104,59,0.2)',
-          }}
-        />
       </div>
     </section>
   );

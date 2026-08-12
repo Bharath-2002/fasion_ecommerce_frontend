@@ -5,17 +5,17 @@ export const cards = [
   {
     id: 1,
     image: 'https://i.pinimg.com/1200x/d7/78/a0/d778a097299ba913f2cd7b048a4dd6f5.jpg',
-    label: 'Kanjivaram',
+    label: 'Silk',
   },
   {
     id: 2,
     image: 'https://i.pinimg.com/736x/e5/33/47/e533470ae3fa4c0f7d58ad0897e7f335.jpg',
-    label: 'Bridal',
+    label: 'Cotton',
   },
   {
     id: 3,
     image: 'https://images.unsplash.com/photo-1616756141603-6d37d5cde2a2?w=800&q=80',
-    label: 'Heritage',
+    label: 'Bridal',
   },
 ];
 
@@ -61,14 +61,14 @@ export default function CardStackEntrance({ onComplete }) {
       <motion.div
         animate={{ opacity: isExiting ? 0 : 1 }}
         transition={bgTransition}
-        style={{ position: 'absolute', inset: 0, background: '#EAEBE0' }}
+        style={{ position: 'absolute', inset: 0, background: '#F4F4F4' }}
       />
 
       {/* Top accent */}
       <motion.div
         animate={{ opacity: isExiting ? 0 : 0.4 }}
         transition={bgTransition}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#9D683B' }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#8A8A8A' }}
       />
 
       {/* Centered layout */}
@@ -112,8 +112,8 @@ export default function CardStackEntrance({ onComplete }) {
                   zIndex: isTop ? 10 : i,
                   // Top card shadow matches HeroSection exactly; others are lighter
                   boxShadow: isTop
-                    ? '0 28px 72px rgba(120,55,18,0.24)'
-                    : `0 ${8 + i * 4}px ${28 + i * 10}px rgba(157,104,59,${0.08 + i * 0.04})`,
+                    ? '0 28px 72px rgba(0,0,0,0.18)'
+                    : `0 ${8 + i * 4}px ${28 + i * 10}px rgba(0,0,0,${0.08 + i * 0.04})`,
                 }}
               >
                 <img
@@ -139,11 +139,11 @@ export default function CardStackEntrance({ onComplete }) {
                     position: 'absolute',
                     top: '20px',
                     left: '20px',
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: 'var(--sans)',
                     fontSize: '10px',
                     letterSpacing: '0.28em',
                     textTransform: 'uppercase',
-                    color: '#EAEBE0',
+                    color: '#FFFFFF',
                     fontWeight: 300,
                     zIndex: 1,
                     textShadow: '0 1px 6px rgba(0,0,0,0.35)',
@@ -177,28 +177,21 @@ export default function CardStackEntrance({ onComplete }) {
                 animate={{ letterSpacing: '0.22em' }}
                 transition={{ duration: 0.8, ease: exitEase }}
                 style={{
-                  fontFamily: "'Playfair Display', serif",
+                  fontFamily: 'var(--serif)',
                   fontSize: 'clamp(26px, 5vw, 50px)',
-                  fontWeight: 400,
-                  color: '#000',
+                  fontWeight: 700,
+                  color: '#0A0A0A',
                   lineHeight: 1.1,
                   textTransform: 'uppercase',
                 }}
               >
-                Kanchi Silks
+                Baby Botique
               </motion.div>
               <div
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: '11px',
-                  fontWeight: 300,
-                  color: '#9D683B',
-                  letterSpacing: '0.35em',
-                  textTransform: 'uppercase',
-                  marginTop: '12px',
-                }}
+                className="ks-tagline"
+                style={{ letterSpacing: '0.35em', marginTop: '12px' }}
               >
-                Est. 1947 · Kanchipuram
+                Sarees · Every Occasion · Every Budget
               </div>
             </motion.div>
           )}
@@ -209,7 +202,7 @@ export default function CardStackEntrance({ onComplete }) {
       <motion.div
         animate={{ opacity: isExiting ? 0 : 0.4 }}
         transition={bgTransition}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#9D683B' }}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#8A8A8A' }}
       />
     </div>
   );

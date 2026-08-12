@@ -64,7 +64,7 @@ export default function HeroSection() {
           top: 0,
           height: '100vh',
           overflow: 'hidden',
-          background: '#EAEBE0',
+          background: '#F4F4F4',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -86,10 +86,10 @@ export default function HeroSection() {
         >
           <h1
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: 'var(--serif)',
               fontSize: isMobile ? 'clamp(22px, 7vw, 34px)' : 'clamp(36px, 5.6vw, 82px)',
-              fontWeight: 400,
-              color: '#1A0E08',
+              fontWeight: 700,
+              color: '#0A0A0A',
               lineHeight: 1.0,
               letterSpacing: '-0.01em',
               margin: 0,
@@ -98,7 +98,7 @@ export default function HeroSection() {
               whiteSpace: isMobile ? 'nowrap' : 'normal',
             }}
           >
-            {isMobile ? 'NAJ KRAJŠIA VERZIA' : (<>NAJ<br />KRAJŠIA<br />VERZIA</>)}
+            {isMobile ? 'FOR EVERY OCCASION' : (<>FOR<br />EVERY<br />OCCASION</>)}
           </h1>
         </motion.div>
 
@@ -118,10 +118,10 @@ export default function HeroSection() {
         >
           <h1
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: 'var(--serif)',
               fontSize: isMobile ? 'clamp(22px, 7vw, 34px)' : 'clamp(36px, 5.6vw, 82px)',
-              fontWeight: 400,
-              color: '#1A0E08',
+              fontWeight: 700,
+              color: '#0A0A0A',
               lineHeight: 1.0,
               letterSpacing: '-0.01em',
               margin: 0,
@@ -129,7 +129,7 @@ export default function HeroSection() {
               whiteSpace: isMobile ? 'nowrap' : 'normal',
             }}
           >
-            {isMobile ? 'SAMEJ SEBA' : (<>SAMEJ<br />SEBA</>)}
+            {isMobile ? 'EVERY BUDGET' : (<>EVERY<br />BUDGET</>)}
           </h1>
         </motion.div>
 
@@ -142,13 +142,13 @@ export default function HeroSection() {
               height: cardHeight,
               borderRadius: cardRadius,
               overflow: 'hidden',
-              boxShadow: '0 28px 72px rgba(120,55,18,0.24)',
+              boxShadow: '0 28px 72px rgba(0,0,0,0.18)',
             }}
           >
             {/* Image — zooms on scroll */}
             <motion.img
               src={HERO_IMAGE}
-              alt="Žuffa"
+              alt="Red silk saree with woven gold motifs, styled with a pearl strand"
               style={{
                 position: 'absolute',
                 inset: 0,
@@ -197,7 +197,7 @@ export default function HeroSection() {
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  border: '1px solid rgba(234,235,224,0.55)',
+                  border: '1px solid rgba(255,255,255,0.55)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -207,22 +207,22 @@ export default function HeroSection() {
               >
                 <span
                   style={{
-                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontFamily: 'var(--serif)',
                     fontSize: '18px',
-                    color: '#EAEBE0',
+                    color: '#FFFFFF',
                     fontWeight: 400,
                   }}
                 >
-                  ž
+                  B
                 </span>
               </div>
 
               <p
                 style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: 'var(--sans)',
                   fontSize: 'clamp(12px, 1.35vw, 17px)',
                   fontWeight: 300,
-                  color: '#EAEBE0',
+                  color: '#FFFFFF',
                   textAlign: 'center',
                   letterSpacing: '0.09em',
                   lineHeight: 1.7,
@@ -231,17 +231,17 @@ export default function HeroSection() {
                   maxWidth: '640px',
                 }}
               >
-                Autentické tvárové terapie navrhnuté
+                Sarees for every occasion and every
                 <br />
-                pre prirodzené omladenie. Tvárové
+                budget — easy cotton drapes for the
                 <br />
-                terapie a škola tváre vytvorené Evou
+                everyday, silk and zari for the big day,
                 <br />
-                Žuffa prinášajú to najkvalitnejšie, čo v
+                and plenty in between. Handpicked
                 <br />
-                oblasti prirodzeného omladenia existuje.
+                pieces, honest prices, and something
                 <br />
-                Prebuďte svoju prirodzenú krásu.
+                new on the racks every week.
               </p>
             </motion.div>
           </motion.div>

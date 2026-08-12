@@ -23,7 +23,7 @@ export default function MobileNav() {
       ),
     },
     {
-      label: 'Heritage',
+      label: 'Collections',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <circle cx="12" cy="12" r="9" />
@@ -88,7 +88,7 @@ export default function MobileNav() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '4px',
-                  color: '#1A0E08',
+                  color: '#0A0A0A',
                   opacity: 0.7,
                   textDecoration: 'none',
                   transition: 'opacity 0.25s',
@@ -99,7 +99,7 @@ export default function MobileNav() {
                 {item.icon}
                 <span
                   style={{
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: 'var(--sans)',
                     fontSize: '9px',
                     letterSpacing: '0.12em',
                     textTransform: 'uppercase',

@@ -5,15 +5,64 @@
 }
 
 :root {
-  --brown: #9D683B;
-  --beige: #DEC8B5;
-  --black: #000000;
-  --ivory: #EAEBE0;
-  --ivory-dark: #e0e1d6;
+  /* ── Monochrome editorial theme ──
+     Token NAMES are kept from the previous warm palette so every call site
+     keeps working; only the values changed. They read wrong (--brown is grey
+     now) — worth a rename pass once the look is confirmed. */
+
+  --brown: #8A8A8A;       /* decorative rules, ornament strokes — non-text only */
+  /* Small-text grey. 5.2:1 on --ivory and 4.8:1 on --beige, so 10–11px labels
+     clear WCAG AA on both surfaces. */
+  --brown-deep: #666666;
+  --beige: #EBEBEB;       /* alternate surface band (footer) */
+  --black: #0A0A0A;       /* ink */
+  --ivory: #F4F4F4;       /* page background */
+  --ivory-dark: #FFFFFF;  /* raised surface */
+
+  /* Neutral hairlines and washes */
+  --rule: rgba(0, 0, 0, 0.10);
+  --rule-strong: rgba(0, 0, 0, 0.22);
+  --wash: rgba(0, 0, 0, 0.035);
+
+  /* ── Glassmorphism (frosted panels over photography) ──
+     Flat tint, used by the small index chip. Grey rather than near-black and
+     opaque enough to assert itself: a dark tint at low alpha vanishes into a
+     dark photo and washes out over a white one, whereas mid-grey lightens dark
+     images and darkens light ones. Composited white text clears WCAG AA at both
+     extremes — #252525 (15:1) over black, #5E5E5E (6.6:1) over white. */
+  /* Uniform tint — no gradient. This is as light as it can go while white text
+     stays legible: the worst case is the white packshot, where the panel
+     composites to #6D6D6D and gives 5.2:1 for the title and 4.5:1 for the
+     smaller tagline. Lightening further needs dark text instead of white. */
+  --glass-bg: rgba(52, 52, 52, 0.72);
+  --glass-bg-fallback: rgba(52, 52, 52, 0.86); /* when backdrop-filter is absent */
+  --glass-border: rgba(255, 255, 255, 0.22);
+  --glass-blur: 24px;
+  --on-glass: #FFFFFF;
+  --on-glass-dim: rgba(255, 255, 255, 0.90);
+
+  /* --serif is a misnomer now: the reference theme is all-sans. Space Grotesk
+     ships no true italic, and font-synthesis is off below, so `font-style:
+     italic` renders upright — accents use weight and colour instead. */
+  --serif: 'Space Grotesk', system-ui, sans-serif;
+  --sans: 'Inter', system-ui, sans-serif;
+
+  /* Single page gutter. Section headers and grids both read from this, so they
+     can never drift out of alignment when one is tuned. */
+  --gutter: clamp(24px, 8vw, 120px);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Phones get a much tighter gutter — the desktop 8vw wastes width that the
+   product images should be using. */
+@media (max-width: 768px) {
+  :root {
+    --gutter: 16px;
+  }
 }
 
 html {
@@ -24,8 +73,12 @@ body {
   margin: 0;
   background-color: var(--ivory);
   color: var(--black);
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: var(--sans);
   overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
 }
 
 a {
@@ -38,6 +91,13 @@ button {
   font-family: inherit;
 }
 
+/* Keyboard focus — nothing in the original markup was reachable by keyboard */
+:focus-visible {
+  outline: 2px solid var(--brown-deep);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
@@ -47,11 +107,10 @@ button {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--brown);
-  opacity: 0.4;
 }
 
 /* Selection */
 ::selection {
-  background: var(--beige);
-  color: var(--black);
+  background: var(--black);
+  color: var(--ivory);
 }

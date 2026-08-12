@@ -1,28 +1,1084 @@
-/* Mobile-specific overrides */
+/* ─────────────────────────────────────────────────────────
+   Shared interaction styles.
+   Hover/focus lives here rather than in inline onMouseEnter
+   handlers so keyboard users get the same affordances.
+   ───────────────────────────────────────────────────────── */
+
+/* Outlined button + quiet arrow link. Both are generic utilities, currently
+   without a caller since the Heritage section was removed — kept for reuse. */
+.ks-btn {
+  background: transparent;
+  border: 1px solid var(--black);
+  color: var(--black);
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 16px 40px;
+  cursor: pointer;
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+.ks-btn:hover,
+.ks-btn:focus-visible {
+  /* --black, not --brown-deep: under the monochrome palette the old accent is
+     mid-grey, and ivory text on it would be ~1.1:1. */
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--ivory);
+}
+
+/* Quiet text link with a rule that grows on hover */
+.ks-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--black);
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+.ks-link:hover,
+.ks-link:focus-visible {
+  opacity: 1;
+}
+.ks-link svg {
+  transition: transform 0.3s ease;
+}
+.ks-link:hover svg {
+  transform: translateX(4px);
+}
+
+/* Footer / nav list links */
+.ks-navlink {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--black);
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+  display: inline-block;
+  padding: 2px 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.ks-navlink:hover,
+.ks-navlink:focus-visible {
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+.ks-legal {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--black);
+  opacity: 0.5;
+  letter-spacing: 0.08em;
+  transition: opacity 0.25s ease;
+}
+.ks-legal:hover,
+.ks-legal:focus-visible {
+  opacity: 0.9;
+}
+
+.ks-social {
+  color: var(--black);
+  opacity: 0.55;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px hit area around an 18px glyph */
+  width: 44px;
+  height: 44px;
+  margin: -13px;
+}
+.ks-social:hover,
+.ks-social:focus-visible {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* ── Collections track ──
+   Driven sideways by page scroll while the section is pinned (see
+   CollectionsSection.jsx). No overflow scrolling of its own — the parent
+   clips it — so there are no nested scroll regions fighting the page. */
+.ks-track {
+  display: flex;
+  gap: clamp(16px, 2vw, 28px);
+  padding-left: var(--gutter);
+  /* Trailing space so the last card clears the right edge at full travel */
+  padding-right: var(--gutter);
+  width: max-content;
+  will-change: transform;
+}
+
+/* Reduced-motion fallback: no pinning, so the track becomes an ordinary
+   swipeable rail rather than an unreachable row. */
+.ks-track--static {
+  width: auto;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scroll-padding-left: var(--gutter);
+  scrollbar-width: none;
+}
+.ks-track--static::-webkit-scrollbar {
+  display: none;
+}
+.ks-track--static .ks-card {
+  scroll-snap-align: start;
+}
+
+.ks-card {
+  flex: 0 0 auto;
+  /* Sized off the height actually left over: the pinned section only ever gets
+     100vh, and the header plus padding takes ~380px of it. A flat vh fraction
+     overflows on short viewports. Width follows from the 3:4 crop. */
+  height: clamp(260px, calc(100vh - 380px), 660px);
+  aspect-ratio: 3 / 4;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ks-card:hover {
+  transform: translateY(-6px);
+}
+/* The card itself is not a control — the "Explore" link inside it is.
+   Lift the card when that link takes keyboard focus so the two agree. */
+.ks-card:focus-within {
+  transform: translateY(-6px);
+}
+
+.ks-card-frame {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  /* Concentric with the glass panel: its 16px radius sits 12px in from this
+     edge, so 16 + 12 = 28 keeps the two curves parallel. Matching the raw 16px
+     instead would make the outer corner look tighter than the inner one. */
+  border-radius: 28px;
+  background: var(--ivory-dark);
+}
+.ks-card-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ks-card:hover .ks-card-frame img {
+  transform: scale(1.05);
+}
+
+/* ── Glassmorphism ──
+   Frosted panels laid over photography, per the reference. Base rule carries a
+   solid-ish tint so text stays legible where backdrop-filter is unsupported;
+   the @supports block swaps in the real blur and lightens the tint. */
+.ks-frost {
+  background: var(--glass-bg-fallback);
+  border: 1px solid var(--glass-border);
+  color: var(--on-glass);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ks-frost {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  }
+}
+
+/* Caption panel pinned to the bottom of a card image. Shares the flat frosted
+   tint with the index chip — apply .ks-frost alongside this class. */
+.ks-glass {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 15px 15px 20px;
+  border-radius: 16px;
+  /* Outer ring + drop shadow so the panel keeps a defined edge against a pale
+     photo, where the translucent white border alone disappears. */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.10), 0 10px 30px rgba(0, 0, 0, 0.26);
+}
+
+/* Tighter variant for the product grid, whose cards are smaller than the
+   collection cards. */
+.ks-glass--sm {
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 11px 11px 11px 14px;
+  border-radius: 14px;
+  gap: 10px;
+}
+
+/* ── Product grid (collections / shop) ── */
+.ks-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(12px, 1.5vw, 24px);
+  padding: 0 var(--gutter);
+}
+
+.ks-product-frame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  /* Concentric with the 14px glass inset 10px from this edge */
+  border-radius: 24px;
+  background: var(--ivory-dark);
+}
+.ks-product-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ks-product:hover .ks-product-frame img {
+  transform: scale(1.04);
+}
+
+.ks-product-fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--beige) 0 3px, var(--ivory-dark) 3px 6px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 6px);
+}
+
+.ks-product-name {
+  font-family: var(--serif);
+  font-size: clamp(12px, 1.05vw, 14px);
+  font-weight: 700;
+  color: var(--on-glass);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  margin: 0 0 4px;
+  /* Two lines then ellipsis — names run long and must not shove the heart out */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ks-product-price {
+  font-family: var(--serif);
+  font-size: clamp(12px, 1.05vw, 14px);
+  font-weight: 500;
+  color: var(--on-glass-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+/* Like button — 44px hit area around a 17px glyph via negative margin, so the
+   panel stays compact without shrinking the touch target. */
+.ks-like {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: -6px -4px -6px 0;
+  border: none;
+  background: none;
+  color: var(--on-glass);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+.ks-like:hover,
+.ks-like:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+}
+.ks-like:active {
+  transform: scale(0.9);
+}
+.ks-like.is-liked {
+  color: #FF6B6B;
+}
+
+/* ── "See full collection" tile ──
+   Occupies the eighth cell of the home grid so the collage reads as two
+   complete rows. Matches the product cards' shape exactly. */
+.ks-seeall {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: 24px;
+  background: var(--beige);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+  transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+  color: var(--black);
+}
+.ks-seeall:hover,
+.ks-seeall:focus-visible {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--ivory);
+}
+
+.ks-seeall-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  text-align: center;
+}
+
+.ks-seeall-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+.ks-seeall:hover .ks-seeall-icon {
+  transform: translateX(5px);
+  opacity: 1;
+}
+
+.ks-seeall-label {
+  font-family: var(--serif);
+  font-size: clamp(14px, 1.3vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+.ks-seeall-count {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* Small-caps strapline used under both the footer wordmark and the entrance
+   animation's brand mark. */
+.ks-tagline {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--brown-deep);
+}
+
+/* ── Section eyebrow (rule + small-caps label), optionally with a control
+   pinned to the right of the same line ── */
+.ks-eyebrow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 var(--gutter);
+  margin-bottom: clamp(24px, 3.5vw, 40px);
+}
+
+.ks-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.ks-eyebrow-rule {
+  width: 48px;
+  height: 1px;
+  background: var(--brown);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.ks-eyebrow-text {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--brown-deep);
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Home grid already has its own heading block, so this row carries only the
+   toggle — and collapses to nothing on desktop where the toggle is hidden. */
+.ks-eyebrow-row--toggleonly {
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+
+/* ── Grid density toggle (mobile only) ──
+   A 32px chip: enough surface and border to read as a control, but well short
+   of the 44px bordered box that overpowered the 11px eyebrow beside it. */
+.ks-viewtoggle {
+  display: none; /* revealed inside the mobile media query */
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rule-strong);
+  border-radius: 9px;
+  background: var(--ivory-dark);
+  color: var(--black);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    transform 0.15s ease;
+}
+
+/* Restores the full 44px touch target without inflating the visible chip */
+.ks-viewtoggle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.ks-viewtoggle:hover,
+.ks-viewtoggle:focus-visible {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--ivory);
+}
+.ks-viewtoggle:active {
+  transform: scale(0.92);
+}
+
+/* ═══ Shared page shell ═══
+   Top padding clears the fixed navbar. Note the pagination number button is
+   .ks-pagenum, deliberately not .ks-page — they collided and the later rule
+   was flattening this page's padding to 0 8px. */
+.ks-page {
+  background: var(--ivory);
+  padding: clamp(104px, 12vw, 152px) 0 clamp(64px, 9vw, 120px);
+  min-height: 100vh;
+}
+
+.ks-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--gutter);
+  margin-bottom: clamp(24px, 3vw, 36px);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brown-deep);
+}
+.ks-breadcrumb a {
+  opacity: 0.75;
+  transition: opacity 0.25s ease;
+}
+.ks-breadcrumb a:hover {
+  opacity: 1;
+}
+.ks-breadcrumb span[aria-hidden] {
+  opacity: 0.4;
+}
+
+/* Solid variant of the outlined button */
+.ks-btn--solid {
+  background: var(--black);
+  color: var(--ivory);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+}
+.ks-btn--solid:hover,
+.ks-btn--solid:focus-visible {
+  background: transparent;
+  color: var(--black);
+}
+
+.ks-btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 16px 28px;
+}
+.ks-btn--icon.is-liked {
+  color: #C0392B;
+  border-color: #C0392B;
+}
+.ks-btn--icon.is-liked:hover {
+  background: #C0392B;
+  border-color: #C0392B;
+  color: var(--ivory);
+}
+
+/* ═══ Product detail ═══ */
+.ks-pdp {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 80px);
+  padding: 0 var(--gutter);
+  align-items: start;
+}
+
+.ks-pdp-media {
+  position: sticky;
+  top: 96px;
+}
+
+.ks-pdp-frame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--ivory-dark);
+}
+.ks-pdp-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ks-pdp-title {
+  font-family: var(--serif);
+  font-size: clamp(26px, 3.4vw, 44px);
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1.06;
+  margin: 0 0 16px;
+}
+
+.ks-pdp-price {
+  font-family: var(--serif);
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 500;
+  color: var(--black);
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 4px;
+}
+
+.ks-pdp-tax {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--brown-deep);
+  margin: 0 0 28px;
+}
+
+.ks-pdp-blurb {
+  font-family: var(--sans);
+  font-size: clamp(15px, 1.4vw, 16px);
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--black);
+  opacity: 0.78;
+  max-width: 46ch;
+  margin: 0 0 32px;
+}
+
+.ks-pdp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.ks-details {
+  border-top: 1px solid var(--rule);
+  margin: 0 0 28px;
+}
+.ks-details-row {
+  display: flex;
+  gap: 24px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ks-details-row dt {
+  flex: 0 0 34%;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brown-deep);
+}
+.ks-details-row dd {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--black);
+  opacity: 0.8;
+}
+
+.ks-pdp-note {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--black);
+  opacity: 0.6;
+  max-width: 46ch;
+  margin: 0;
+}
+
+.ks-related {
+  margin-top: clamp(72px, 10vw, 128px);
+}
+
+/* Full-card click target, beneath the caption panel so the heart still wins */
+.ks-product-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.ks-product-name a {
+  color: inherit;
+}
+
+/* ═══ About ═══ */
+.ks-about-lede {
+  padding: 0 var(--gutter);
+  max-width: 900px;
+}
+
+.ks-about-title {
+  font-family: var(--serif);
+  font-size: clamp(30px, 5vw, 64px);
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1.02;
+  margin: 0 0 24px;
+}
+
+.ks-about-intro {
+  font-family: var(--sans);
+  font-size: clamp(16px, 1.7vw, 20px);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--black);
+  opacity: 0.8;
+  max-width: 60ch;
+  margin: 0;
+}
+
+.ks-about-figure {
+  margin: clamp(48px, 7vw, 88px) 0;
+  padding: 0 var(--gutter);
+}
+.ks-about-figure img {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border-radius: 28px;
+  display: block;
+  background: var(--ivory-dark);
+}
+
+.ks-about-body {
+  padding: 0 var(--gutter);
+  max-width: 760px;
+  display: grid;
+  gap: 20px;
+}
+.ks-about-body p {
+  font-family: var(--sans);
+  font-size: clamp(15px, 1.4vw, 17px);
+  font-weight: 300;
+  line-height: 1.9;
+  color: var(--black);
+  opacity: 0.75;
+  margin: 0;
+}
+
+.ks-pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+  padding: 0 var(--gutter);
+  margin-top: clamp(56px, 8vw, 96px);
+}
+.ks-pillar {
+  border-top: 1px solid var(--rule-strong);
+  padding-top: 24px;
+}
+.ks-pillar-title {
+  font-family: var(--serif);
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin: 0 0 12px;
+}
+.ks-pillar-body {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--black);
+  opacity: 0.72;
+  margin: 0;
+}
+
+.ks-statrow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 0 var(--gutter);
+  margin-top: clamp(56px, 8vw, 96px);
+}
+.ks-statcell {
+  padding: clamp(24px, 3vw, 36px) 16px;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+}
+.ks-statcell + .ks-statcell {
+  border-left: 1px solid var(--rule);
+}
+.ks-statvalue {
+  font-family: var(--serif);
+  font-size: clamp(26px, 3.4vw, 44px);
+  font-weight: 600;
+  color: var(--black);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+  line-height: 1;
+}
+.ks-statlabel {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brown-deep);
+  margin: 0;
+}
+
+.ks-about-cta {
+  text-align: center;
+  padding: clamp(64px, 9vw, 112px) var(--gutter) 0;
+}
+.ks-about-ctatitle {
+  font-family: var(--serif);
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin: 0 0 12px;
+}
+.ks-about-ctabody {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--black);
+  opacity: 0.7;
+  margin: 0 0 28px;
+}
+
+/* ── Pagination ── */
+.ks-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: clamp(40px, 5vw, 64px);
+  padding: 0 var(--gutter);
+  flex-wrap: wrap;
+}
+
+.ks-page-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ks-pagenum {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--black);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  border-radius: 8px;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.ks-pagenum:hover {
+  background: var(--wash);
+  border-color: var(--rule);
+}
+.ks-pagenum.is-current {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--ivory);
+}
+
+.ks-page-arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  color: var(--black);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+}
+.ks-page-arrow:hover:not(:disabled) {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--ivory);
+}
+.ks-page-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Index marker — same frosted treatment. Left bare it disappears against a
+   white packshot, which is exactly what happened to "04" before. */
+.ks-index {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: var(--serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.10), 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+/* Solid white pill, per the reference's PIN button */
+.ks-pill {
+  flex-shrink: 0;
+  background: #FFFFFF;
+  color: var(--black);
+  border: none;
+  border-radius: 999px;
+  padding: 0 24px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.ks-pill:hover,
+.ks-pill:focus-visible {
+  background: #ECECEC;
+  transform: translateY(-1px);
+}
+
+/* ─── Responsive ─── */
 @media (max-width: 768px) {
   /* Hide desktop nav links — hamburger handles navigation */
   .nav-links {
     display: none !important;
   }
 
-  /* Show hamburger button */
   .nav-hamburger {
     display: flex !important;
   }
 
-  /* Mobile dropdown only visible on mobile */
   .mobile-menu {
     display: flex;
   }
 
-  /* Heritage grid stacks vertically */
-  .heritage-grid {
-    grid-template-columns: 1fr !important;
+  /* The header wraps to more lines on a narrow screen, so the cards get a
+     smaller share of the pinned viewport. */
+  .ks-card {
+    height: clamp(220px, calc(100vh - 330px), 460px);
+  }
+
+  .ks-card-frame {
+    border-radius: 22px;
+  }
+
+  /* Density toggle only exists on mobile */
+  .ks-viewtoggle {
+    display: inline-flex;
+  }
+
+  /* Product detail stacks; the image must not stay stuck to the top */
+  .ks-pdp {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .ks-pdp-media {
+    position: static;
+  }
+  .ks-pdp-frame {
+    border-radius: 20px;
+  }
+  .ks-pdp-actions .ks-btn {
+    flex: 1 1 auto;
+  }
+
+  .ks-pillars {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  /* Four stat cells are far too narrow on a phone */
+  .ks-statrow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ks-statcell:nth-child(odd) {
+    border-left: none;
+  }
+  .ks-statcell:nth-child(even) {
+    border-left: 1px solid var(--rule);
+  }
+
+  .ks-about-figure img {
+    aspect-ratio: 4 / 3;
+    border-radius: 20px;
+  }
+
+  /* Reinstate the gap the toggle needs above the home grid */
+  .ks-eyebrow-row--toggleonly {
+    margin-bottom: 12px;
+  }
+
+  /* At 11px/0.28em this strapline is ~366px wide and wraps on any phone.
+     Smaller with much tighter tracking brings it back to one line. The
+     inline letter-spacing on the entrance copy is overridden too. */
+  .ks-tagline {
+    font-size: 9px;
+    letter-spacing: 0.1em !important;
+    white-space: nowrap;
+  }
+
+  /* ── Trim the footer ──
+     Sixteen links across four columns stack into a very tall block on a phone.
+     Wordmark, then socials, then the legal line. */
+  .ks-footer-nav {
+    display: none !important;
+  }
+
+  .ks-footer-socials {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+  }
+  .ks-footer-copy {
+    order: 1;
+    width: 100%;
+    text-align: center;
+  }
+  .ks-footer-legal {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* One per row by default — full-width photography. .ks-grid--two switches to
+     the denser browse view. */
+  .ks-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .ks-grid--two {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .ks-product-frame,
+  .ks-seeall {
+    border-radius: 20px;
+  }
+
+  /* Names still clamp to one line, but a full-width panel affords real sizes */
+  .ks-product-name {
+    font-size: 14px;
+    line-height: 1.25;
+    -webkit-line-clamp: 1;
+  }
+  .ks-product-price {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* ── Two-up: everything tightens ── */
+  .ks-grid--two .ks-product-frame,
+  .ks-grid--two .ks-seeall {
+    border-radius: 18px;
+  }
+  .ks-grid--two .ks-glass--sm {
+    left: 7px;
+    right: 7px;
+    bottom: 7px;
+    padding: 8px 8px 8px 11px;
+    border-radius: 12px;
+    gap: 6px;
+  }
+  .ks-grid--two .ks-product-name {
+    font-size: 10.5px;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+  .ks-grid--two .ks-product-price {
+    font-size: 11px;
+  }
+  /* Keeps the 44px hit area while occupying only ~28px of the tighter panel */
+  .ks-grid--two .ks-like {
+    margin: -8px -7px -8px 0;
+  }
+  .ks-grid--two .ks-seeall-inner {
+    gap: 12px;
+    padding: 16px;
+  }
+  .ks-grid--two .ks-seeall-icon {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .ks-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (min-width: 769px) {
-  /* Hide mobile-only elements on desktop */
   .mobile-menu {
     display: none !important;
   }
@@ -31,5 +1087,25 @@
 @media (max-width: 480px) {
   .hero-headline {
     font-size: clamp(36px, 10vw, 56px) !important;
+  }
+}
+
+/* Section reveals are decorative; the scroll-scrubbed hero is not, so this
+   is deliberately scoped to opt-in elements rather than applied globally. */
+@media (prefers-reduced-motion: reduce) {
+  .ks-card,
+  .ks-card-frame img,
+  .ks-navlink,
+  .ks-social,
+  .ks-pill,
+  .ks-like,
+  .ks-product-frame img,
+  .ks-seeall,
+  .ks-seeall-icon,
+  .ks-link svg {
+    transition: none !important;
+  }
+  .ks-track--static {
+    scroll-behavior: auto;
   }
 }

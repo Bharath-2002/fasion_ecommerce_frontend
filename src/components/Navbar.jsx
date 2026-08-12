@@ -1,7 +1,33 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
-const NAV_ITEMS = ['Collections', 'Heritage', 'Atelier', 'Visit'];
+/* Router Link that framer-motion can animate */
+const MotionLink = motion.create(Link);
+
+/* `to` is a route for real destinations and a hash for sections that don't
+   have their own page yet. */
+const NAV_ITEMS = [
+  { label: 'Shop', to: '/shop' },
+  { label: 'Collections', to: '/#collections' },
+  { label: 'About', to: '/about' },
+  { label: 'Contact', to: '/#contact' },
+];
+
+const LEFT_ITEMS = NAV_ITEMS.slice(0, 2);
+const RIGHT_ITEMS = NAV_ITEMS.slice(2);
+
+const navLinkStyle = {
+  fontFamily: 'var(--sans)',
+  fontSize: '12px',
+  fontWeight: 300,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+  color: '#0A0A0A',
+  opacity: 0.7,
+  textDecoration: 'none',
+  transition: 'opacity 0.3s',
+};
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -37,77 +63,58 @@ export default function Navbar() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: scrolled || menuOpen ? 'rgba(234,235,224,0.96)' : 'transparent',
+          background: scrolled || menuOpen ? 'rgba(244,244,244,0.96)' : 'transparent',
           backdropFilter: scrolled || menuOpen ? 'blur(12px)' : 'none',
-          borderBottom: scrolled || menuOpen ? '1px solid rgba(157,104,59,0.15)' : '1px solid transparent',
+          borderBottom: scrolled || menuOpen ? '1px solid rgba(0,0,0,0.15)' : '1px solid transparent',
           transition: 'background 0.4s ease, border-color 0.4s ease',
         }}
       >
         {/* Left links — desktop only */}
         <div style={{ display: 'flex', gap: '40px' }} className="nav-links">
-          {['Collections', 'Heritage'].map((item) => (
-            <a
-              key={item}
-              href="#"
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: 300,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: '#000',
-                opacity: 0.7,
-                textDecoration: 'none',
-                transition: 'opacity 0.3s',
-              }}
+          {LEFT_ITEMS.map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              style={navLinkStyle}
               onMouseEnter={(e) => (e.target.style.opacity = 1)}
               onMouseLeave={(e) => (e.target.style.opacity = 0.7)}
             >
-              {item}
-            </a>
+              {item.label}
+            </Link>
           ))}
         </div>
 
-        {/* Center brand */}
-        <div
+        {/* Center brand — also the way home from any route */}
+        <Link
+          to="/"
           style={{
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: 'var(--serif)',
             fontSize: 'clamp(14px, 2vw, 18px)',
-            fontWeight: 400,
+            fontWeight: 700,
             letterSpacing: '0.28em',
             textTransform: 'uppercase',
-            color: '#000',
+            color: '#0A0A0A',
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
           }}
         >
-          Kanchi Silks
-        </div>
+          Baby Botique
+        </Link>
 
         {/* Right links — desktop only */}
         <div style={{ display: 'flex', gap: '40px' }} className="nav-links">
-          {['Atelier', 'Visit'].map((item) => (
-            <a
-              key={item}
-              href="#"
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: 300,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: '#000',
-                opacity: 0.7,
-                textDecoration: 'none',
-                transition: 'opacity 0.3s',
-              }}
+          {RIGHT_ITEMS.map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              style={navLinkStyle}
               onMouseEnter={(e) => (e.target.style.opacity = 1)}
               onMouseLeave={(e) => (e.target.style.opacity = 0.7)}
             >
-              {item}
-            </a>
+              {item.label}
+            </Link>
           ))}
         </div>
 
@@ -123,7 +130,7 @@ export default function Navbar() {
             cursor: 'pointer',
             padding: '4px',
             marginLeft: 'auto',
-            color: '#1A0E08',
+            color: '#0A0A0A',
           }}
         >
           <motion.div
@@ -136,7 +143,7 @@ export default function Navbar() {
                 open: { rotate: 45, y: 7 },
               }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              style={{ display: 'block', height: '1px', background: '#1A0E08', transformOrigin: 'center' }}
+              style={{ display: 'block', height: '1px', background: '#0A0A0A', transformOrigin: 'center' }}
             />
             <motion.span
               variants={{
@@ -144,7 +151,7 @@ export default function Navbar() {
                 open: { opacity: 0, scaleX: 0 },
               }}
               transition={{ duration: 0.2 }}
-              style={{ display: 'block', height: '1px', background: '#1A0E08', transformOrigin: 'center' }}
+              style={{ display: 'block', height: '1px', background: '#0A0A0A', transformOrigin: 'center' }}
             />
             <motion.span
               variants={{
@@ -152,7 +159,7 @@ export default function Navbar() {
                 open: { rotate: -45, y: -7 },
               }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              style={{ display: 'block', height: '1px', background: '#1A0E08', transformOrigin: 'center' }}
+              style={{ display: 'block', height: '1px', background: '#0A0A0A', transformOrigin: 'center' }}
             />
           </motion.div>
         </button>
@@ -173,9 +180,9 @@ export default function Navbar() {
               left: 0,
               right: 0,
               zIndex: 99,
-              background: 'rgba(234,235,224,0.97)',
+              background: 'rgba(244,244,244,0.97)',
               backdropFilter: 'blur(12px)',
-              borderBottom: '1px solid rgba(157,104,59,0.15)',
+              borderBottom: '1px solid rgba(0,0,0,0.15)',
               display: 'flex',
               flexDirection: 'column',
               padding: '8px 0 20px',
@@ -183,28 +190,28 @@ export default function Navbar() {
             className="mobile-menu"
           >
             {NAV_ITEMS.map((item, i) => (
-              <motion.a
-                key={item}
-                href="#"
+              <MotionLink
+                key={item.label}
+                to={item.to}
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.06 + 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 onClick={() => setMenuOpen(false)}
                 style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: 'var(--sans)',
                   fontSize: '13px',
                   fontWeight: 300,
                   letterSpacing: '0.22em',
                   textTransform: 'uppercase',
-                  color: '#1A0E08',
+                  color: '#0A0A0A',
                   textDecoration: 'none',
                   padding: '14px 32px',
-                  borderBottom: i < NAV_ITEMS.length - 1 ? '1px solid rgba(157,104,59,0.1)' : 'none',
+                  borderBottom: i < NAV_ITEMS.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
                   opacity: 0.85,
                 }}
               >
-                {item}
-              </motion.a>
+                {item.label}
+              </MotionLink>
             ))}
           </motion.div>
         )}

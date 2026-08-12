@@ -1,62 +1,30 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
-// Kolam-inspired SVG border motif
-const KolamBorder = () => (
-  <svg width="100%" height="28" viewBox="0 0 1440 28" preserveAspectRatio="xMidYMid meet" style={{ display: 'block' }}>
-    <defs>
-      <pattern id="kolam" x="0" y="0" width="72" height="28" patternUnits="userSpaceOnUse">
-        {/* Central lotus unit */}
-        <circle cx="36" cy="14" r="4" fill="none" stroke="#9D683B" strokeWidth="0.8" opacity="0.6" />
-        <circle cx="36" cy="14" r="1.5" fill="#9D683B" opacity="0.5" />
-        {/* Four petals */}
-        <ellipse cx="36" cy="6" rx="2.5" ry="5" fill="none" stroke="#9D683B" strokeWidth="0.6" opacity="0.45" />
-        <ellipse cx="36" cy="22" rx="2.5" ry="5" fill="none" stroke="#9D683B" strokeWidth="0.6" opacity="0.45" />
-        <ellipse cx="28" cy="14" rx="5" ry="2.5" fill="none" stroke="#9D683B" strokeWidth="0.6" opacity="0.45" />
-        <ellipse cx="44" cy="14" rx="5" ry="2.5" fill="none" stroke="#9D683B" strokeWidth="0.6" opacity="0.45" />
-        {/* Diamond connectors */}
-        <polygon points="18,14 22,10 26,14 22,18" fill="none" stroke="#9D683B" strokeWidth="0.5" opacity="0.35" />
-        <polygon points="46,14 50,10 54,14 50,18" fill="none" stroke="#9D683B" strokeWidth="0.5" opacity="0.35" />
-        {/* Dots */}
-        <circle cx="10" cy="14" r="1" fill="#9D683B" opacity="0.3" />
-        <circle cx="62" cy="14" r="1" fill="#9D683B" opacity="0.3" />
-        {/* Top/Bottom line segments */}
-        <line x1="0" y1="1" x2="72" y2="1" stroke="#9D683B" strokeWidth="0.4" opacity="0.25" />
-        <line x1="0" y1="27" x2="72" y2="27" stroke="#9D683B" strokeWidth="0.4" opacity="0.25" />
-      </pattern>
-    </defs>
-    <rect width="1440" height="28" fill="url(#kolam)" />
-  </svg>
-);
-
-// Temple symmetry top border
-const TempleBorder = () => (
-  <svg width="100%" height="16" viewBox="0 0 1440 16" preserveAspectRatio="xMidYMid meet" style={{ display: 'block' }}>
-    <defs>
-      <pattern id="temple" x="0" y="0" width="48" height="16" patternUnits="userSpaceOnUse">
-        <line x1="0" y1="8" x2="48" y2="8" stroke="#9D683B" strokeWidth="0.5" opacity="0.4" />
-        <circle cx="24" cy="8" r="2" fill="none" stroke="#9D683B" strokeWidth="0.7" opacity="0.5" />
-        <line x1="24" y1="0" x2="24" y2="5" stroke="#9D683B" strokeWidth="0.5" opacity="0.35" />
-        <line x1="24" y1="11" x2="24" y2="16" stroke="#9D683B" strokeWidth="0.5" opacity="0.35" />
-        <circle cx="0" cy="8" r="1" fill="#9D683B" opacity="0.35" />
-        <circle cx="48" cy="8" r="1" fill="#9D683B" opacity="0.35" />
-      </pattern>
-    </defs>
-    <rect width="1440" height="16" fill="url(#temple)" />
-  </svg>
-);
-
-const navLinks = [
-  { label: 'Collections', items: ['Bridal Kanjivaram', 'Temple Heritage', 'Pallu Narratives', 'Contemporary'] },
-  { label: 'Atelier', items: ['Our Weavers', 'The Process', 'Zari Craft', 'Custom Orders'] },
-  { label: 'House', items: ['Our Story', 'Heritage', 'Press', 'Careers'] },
-  { label: 'Visit', items: ['Kanchipuram Atelier', 'Chennai Boutique', 'Appointments', 'Contact'] },
+const navGroups = [
+  {
+    label: 'Shop',
+    items: ['New Arrivals', 'Bridal & Wedding', 'Pure Silk', 'Daily Cotton'],
+  },
+  {
+    // Price bands are placeholders — set these to the ranges you actually stock.
+    label: 'Shop by Budget',
+    items: ['Under ₹1,000', '₹1,000 – ₹3,000', '₹3,000 – ₹10,000', 'Premium'],
+  },
+  {
+    label: 'Help',
+    items: ['Size & Fit Guide', 'Shipping', 'Returns & Exchange', 'Track Order'],
+  },
+  {
+    label: 'Boutique',
+    items: ['About Us', 'Visit the Store', 'Contact', 'Instagram'],
+  },
 ];
 
 const socialLinks = [
   {
     name: 'Instagram',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
         <rect x="2" y="2" width="20" height="20" rx="5" />
         <circle cx="12" cy="12" r="5" />
         <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
@@ -66,15 +34,17 @@ const socialLinks = [
   {
     name: 'Pinterest',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.03-2.83.18-.77 1.22-5.16 1.22-5.16s-.31-.62-.31-1.54c0-1.45.84-2.53 1.88-2.53.89 0 1.32.67 1.32 1.47 0 .9-.57 2.24-.87 3.48-.25 1.04.52 1.88 1.54 1.88 1.85 0 3.27-1.95 3.27-4.76 0-2.49-1.79-4.23-4.34-4.23-2.96 0-4.69 2.22-4.69 4.51 0 .89.34 1.85.77 2.37.08.1.09.19.07.29l-.29 1.17c-.05.19-.16.23-.37.14-1.39-.65-2.26-2.68-2.26-4.32 0-3.51 2.55-6.74 7.35-6.74 3.86 0 6.86 2.75 6.86 6.42 0 3.83-2.41 6.91-5.76 6.91-1.13 0-2.19-.59-2.55-1.28l-.69 2.58c-.25.97-.93 2.18-1.38 2.92.04.01.09.01.13.01" />
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.5 20c-.4-1.3.1-3 .4-4.2l1-4.1" strokeLinecap="round" />
+        <path d="M8.6 10.4a3.5 3.5 0 116.6 2c-.6 1.7-2 2.7-3.3 2.3" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     name: 'YouTube',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
         <rect x="2" y="5" width="20" height="14" rx="3" />
         <polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none" />
       </svg>
@@ -82,162 +52,85 @@ const socialLinks = [
   },
 ];
 
+const eyebrowStyle = {
+  fontFamily: 'var(--sans)',
+  fontSize: '10px',
+  letterSpacing: '0.3em',
+  textTransform: 'uppercase',
+  color: 'var(--brown-deep)',
+  fontWeight: 400,
+  marginBottom: '20px',
+};
+
 export default function TraditionalFooter() {
+  const reduceMotion = useReducedMotion();
+
+  const reveal = reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 18 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: '-40px' },
+      };
+
   return (
-    <footer
-      style={{
-        background: '#DEC8B5',
-        borderTop: '1px solid #9D683B',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Temple border pattern at very top */}
-      <div style={{ opacity: 0.8 }}>
-        <TempleBorder />
-      </div>
-
-      {/* Kolam border */}
-      <div style={{ opacity: 0.7, marginTop: '2px' }}>
-        <KolamBorder />
-      </div>
-
-      {/* Brand name — centered, palatial */}
+    <footer style={{ background: 'var(--beige)', borderTop: '1px solid var(--brown)', overflow: 'hidden' }}>
+      {/* Wordmark */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+        {...reveal}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         style={{
           textAlign: 'center',
-          padding: '80px 24px 60px',
-          borderBottom: '1px solid rgba(157,104,59,0.2)',
+          padding: 'clamp(56px, 8vw, 88px) clamp(24px, 6vw, 48px) clamp(40px, 6vw, 64px)',
+          borderBottom: '1px solid var(--rule)',
         }}
       >
-        {/* Ornamental top mark */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-            marginBottom: '32px',
-          }}
-        >
-          <div style={{ width: '80px', height: '1px', background: '#9D683B', opacity: 0.4 }} />
-          <svg width="16" height="16" viewBox="0 0 16 16" style={{ opacity: 0.5 }}>
-            <polygon points="8,0 16,8 8,16 0,8" fill="none" stroke="#9D683B" strokeWidth="1" />
-            <circle cx="8" cy="8" r="2" fill="#9D683B" />
-          </svg>
-          <div style={{ width: '80px', height: '1px', background: '#9D683B', opacity: 0.4 }} />
-        </div>
-
         <h2
           style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 'clamp(42px, 8vw, 96px)',
-            fontWeight: 400,
-            color: '#000',
-            letterSpacing: '0.18em',
+            fontFamily: 'var(--serif)',
+            fontSize: 'clamp(28px, 7vw, 88px)',
+            fontWeight: 700,
+            color: 'var(--black)',
+            /* Tracking in px, not em — an em-based value scales with the clamped
+               font size and pushes the wordmark past the viewport at 375px. */
+            letterSpacing: 'clamp(2px, 1.2vw, 14px)',
             textTransform: 'uppercase',
-            lineHeight: 1.0,
-            margin: '0 0 16px',
+            lineHeight: 1.05,
+            margin: '0 0 18px',
+            /* Trailing tracking adds phantom width on the right; shift back by
+               half of it to re-centre the wordmark. */
+            textIndent: 'clamp(1px, 0.6vw, 7px)',
           }}
         >
-          Kanchi Silks
+          Baby Botique
         </h2>
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '12px',
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: '#9D683B',
-            fontWeight: 300,
-            margin: '0 0 8px',
-          }}
-        >
-          Kanchipuram · Tamil Nadu
-        </p>
-        <p
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontStyle: 'italic',
-            fontSize: 'clamp(14px, 2vw, 18px)',
-            color: '#000',
-            opacity: 0.5,
-            fontWeight: 400,
-            letterSpacing: '0.04em',
-          }}
-        >
-          Heritage woven since 1947
-        </p>
 
-        {/* Ornamental bottom mark */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-            marginTop: '32px',
-          }}
-        >
-          <div style={{ width: '40px', height: '1px', background: '#9D683B', opacity: 0.3 }} />
-          <div style={{ width: '4px', height: '4px', background: '#9D683B', borderRadius: '50%', opacity: 0.4 }} />
-          <div style={{ width: '80px', height: '1px', background: '#9D683B', opacity: 0.3 }} />
-          <div style={{ width: '4px', height: '4px', background: '#9D683B', borderRadius: '50%', opacity: 0.4 }} />
-          <div style={{ width: '40px', height: '1px', background: '#9D683B', opacity: 0.3 }} />
-        </div>
+        <p className="ks-tagline" style={{ margin: 0 }}>
+          Sarees · Every Occasion · Every Budget
+        </p>
       </motion.div>
 
-      {/* Nav columns */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      {/* Link columns */}
+      <motion.nav
+        {...reveal}
+        transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+        aria-label="Footer"
+        className="ks-footer-nav"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '48px',
-          padding: 'clamp(48px, 6vw, 80px) clamp(32px, 10vw, 160px)',
-          borderBottom: '1px solid rgba(157,104,59,0.18)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: 'clamp(32px, 5vw, 56px)',
+          padding: 'clamp(48px, 6vw, 80px) var(--gutter)',
+          borderBottom: '1px solid var(--rule)',
         }}
       >
-        {navLinks.map((group) => (
+        {navGroups.map((group) => (
           <div key={group.label}>
-            <p
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '10px',
-                letterSpacing: '0.3em',
-                textTransform: 'uppercase',
-                color: '#9D683B',
-                fontWeight: 400,
-                marginBottom: '20px',
-              }}
-            >
-              {group.label}
-            </p>
+            <h3 style={eyebrowStyle}>{group.label}</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {group.items.map((item) => (
-                <li key={item} style={{ marginBottom: '10px' }}>
-                  <a
-                    href="#"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontSize: '14px',
-                      fontWeight: 300,
-                      color: '#000',
-                      opacity: 0.65,
-                      letterSpacing: '0.02em',
-                      transition: 'opacity 0.25s',
-                      display: 'inline-block',
-                    }}
-                    onMouseEnter={(e) => (e.target.style.opacity = 1)}
-                    onMouseLeave={(e) => (e.target.style.opacity = 0.65)}
-                  >
+                <li key={item} style={{ marginBottom: '12px' }}>
+                  <a href="#" className="ks-navlink">
                     {item}
                   </a>
                 </li>
@@ -245,79 +138,58 @@ export default function TraditionalFooter() {
             </ul>
           </div>
         ))}
-      </motion.div>
+      </motion.nav>
 
-      {/* Bottom strip: social + legal */}
+      {/* Legal strip */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '24px',
-          padding: 'clamp(24px, 3vw, 40px) clamp(32px, 10vw, 160px)',
+          gap: 'clamp(20px, 3vw, 32px)',
+          padding: 'clamp(28px, 3vw, 40px) var(--gutter)',
         }}
       >
         <p
+          className="ks-footer-copy"
           style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: 'var(--sans)',
             fontSize: '12px',
             fontWeight: 300,
-            color: '#000',
-            opacity: 0.4,
-            letterSpacing: '0.04em',
+            color: 'var(--black)',
+            opacity: 0.55,
+            letterSpacing: '0.03em',
+            margin: 0,
           }}
         >
-          © 2025 Kanchi Silks. All rights reserved.
+          © 2026 Baby Botique. All rights reserved.
         </p>
 
-        {/* Social icons */}
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        <div
+          className="ks-footer-socials"
+          style={{ display: 'flex', gap: '32px', alignItems: 'center' }}
+        >
           {socialLinks.map((s) => (
-            <a
-              key={s.name}
-              href="#"
-              style={{
-                color: '#000',
-                opacity: 0.5,
-                transition: 'opacity 0.25s',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = 0.5)}
-              aria-label={s.name}
-            >
+            <a key={s.name} href="#" className="ks-social" aria-label={s.name}>
               {s.icon}
             </a>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '32px' }}>
-          {['Privacy', 'Terms', 'Sitemap'].map((t) => (
-            <a
-              key={t}
-              href="#"
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '11px',
-                fontWeight: 300,
-                color: '#000',
-                opacity: 0.4,
-                letterSpacing: '0.08em',
-                transition: 'opacity 0.25s',
-              }}
-              onMouseEnter={(e) => (e.target.style.opacity = 0.8)}
-              onMouseLeave={(e) => (e.target.style.opacity = 0.4)}
-            >
+        <div
+          className="ks-footer-legal"
+          style={{ display: 'flex', gap: 'clamp(20px, 3vw, 32px)', flexWrap: 'wrap' }}
+        >
+          {['Privacy', 'Terms', 'Shipping & Returns'].map((t) => (
+            <a key={t} href="#" className="ks-legal">
               {t}
             </a>
           ))}
         </div>
       </div>
 
-      {/* Pallu closing line — thicker */}
-      <div style={{ height: '4px', background: '#9D683B', opacity: 0.35 }} />
+      <div style={{ height: '4px', background: 'var(--brown)', opacity: 0.4 }} />
     </footer>
   );
 }
