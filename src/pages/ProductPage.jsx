@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { getProductById, getRelated, getCopy, inr } from '../data/products';
+import { api } from '../lib/api';
+import { formatPrice } from '../lib/money';
 
 function HeartIcon({ filled }) {
   return (
@@ -17,58 +18,100 @@ function HeartIcon({ filled }) {
   );
 }
 
+function titleCase(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 export default function ProductPage() {
   const { id } = useParams();
-  const product = getProductById(id);
+  // Keyed by id: navigating from one product to another is a fresh mount
+  // (fresh initial state for every field below) rather than this component's
+  // own effect resetting stale state mid-flight — react-router does not
+  // remount on a param change alone, since it's the same route element.
+  return <ProductPageForId key={id} id={id} />;
+}
+
+function ProductPageForId({ id }) {
+  const [product, setProduct] = useState(undefined); // undefined = loading, null = not found
+  const [imageUrl, setImageUrl] = useState(null);
+  const [related, setRelated] = useState([]);
   const [liked, setLiked] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
-  // Unknown id — send them to the shop rather than rendering an empty shell
-  if (!product) return <Navigate to="/shop" replace />;
+  useEffect(() => {
+    let cancelled = false;
 
-  const copy = getCopy(product);
-  const related = getRelated(product);
+    api
+      .getProduct(id)
+      .then((p) => {
+        if (cancelled) return;
+        setProduct(p);
 
-  const details = [
-    ['Fabric', copy.fabric],
-    ['Length', copy.length],
-    ['Blouse', 'Unstitched piece attached'],
-    ['Care', 'Dry clean only'],
-  ];
+        api
+          .listProductImages(p.id)
+          .then((images) => {
+            if (cancelled) return;
+            const primary = images.find((img) => img.is_primary) ?? images[0];
+            if (primary) setImageUrl(primary.download_url);
+          })
+          .catch(() => {});
+
+        api
+          .listProducts({ categoryId: p.category_id, limit: 5 })
+          .then((page) => {
+            if (cancelled) return;
+            setRelated(page.items.filter((item) => item.id !== p.id).slice(0, 4));
+          })
+          .catch(() => {});
+      })
+      .catch(() => {
+        // Unknown or unpublished id (both a 404) - send them to the shop
+        // rather than rendering an empty shell, same behaviour the old
+        // static-lookup version had.
+        if (!cancelled) setProduct(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (product === null) return <Navigate to="/shop" replace />;
+  if (product === undefined) return null; // loading — avoid a flash of empty content
+
+  const name = product.title || 'Untitled saree';
+  const details = Object.entries(product.attributes ?? {}).map(([key, value]) => [
+    titleCase(key),
+    value,
+  ]);
+  details.push(['Blouse', 'Unstitched piece attached'], ['Care', 'Dry clean only']);
 
   return (
     <main className="ks-page">
       <nav className="ks-breadcrumb" aria-label="Breadcrumb">
         <Link to="/shop">Shop</Link>
-        <span aria-hidden="true">/</span>
-        <span>{copy.label}</span>
       </nav>
 
       <div className="ks-pdp">
         <div className="ks-pdp-media">
           <div className="ks-pdp-frame">
-            {failed ? (
+            {imageFailed || !imageUrl ? (
               <div className="ks-product-fallback" aria-hidden="true" />
             ) : (
-              <img src={product.image} alt={product.alt} onError={() => setFailed(true)} />
+              <img src={imageUrl} alt={name} onError={() => setImageFailed(true)} />
             )}
           </div>
         </div>
 
         <div className="ks-pdp-info">
-          <div className="ks-eyebrow" style={{ marginBottom: '20px' }}>
-            <span className="ks-eyebrow-rule" aria-hidden="true" />
-            <p className="ks-eyebrow-text">{copy.label}</p>
-          </div>
-
-          <h1 className="ks-pdp-title">{product.name}</h1>
-          <p className="ks-pdp-price">{inr.format(product.price)}</p>
+          <h1 className="ks-pdp-title">{name}</h1>
+          <p className="ks-pdp-price">{formatPrice(product.price_amount, product.price_currency)}</p>
           <p className="ks-pdp-tax">Inclusive of all taxes</p>
 
-          <p className="ks-pdp-blurb">{copy.blurb}</p>
-
           <div className="ks-pdp-actions">
-            <button type="button" className="ks-btn ks-btn--solid">
+            {/* Not wired: no cart backend exists yet (M8 checklist explicitly
+                permits deferring this rather than inventing one). */}
+            <button type="button" className="ks-btn ks-btn--solid" disabled>
               Add to Bag
             </button>
             <button
@@ -99,23 +142,25 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <section className="ks-related">
-        <div className="ks-eyebrow-row">
-          <div className="ks-eyebrow">
-            <span className="ks-eyebrow-rule" aria-hidden="true" />
-            <h2 className="ks-eyebrow-text">You May Also Like</h2>
+      {related.length > 0 && (
+        <section className="ks-related">
+          <div className="ks-eyebrow-row">
+            <div className="ks-eyebrow">
+              <span className="ks-eyebrow-rule" aria-hidden="true" />
+              <h2 className="ks-eyebrow-text">You May Also Like</h2>
+            </div>
           </div>
-        </div>
 
-        {/* Always two-up on mobile: these are a secondary browse strip, not the
-            main grid, so they stay compact rather than following the shop
-            page's one-per-row default. */}
-        <div className="ks-grid ks-grid--two">
-          {related.map((item, i) => (
-            <ProductCard key={item.id} product={item} index={i} revealOnMount={i < 4} />
-          ))}
-        </div>
-      </section>
+          {/* Always two-up on mobile: these are a secondary browse strip, not the
+              main grid, so they stay compact rather than following the shop
+              page's one-per-row default. */}
+          <div className="ks-grid ks-grid--two">
+            {related.map((item, i) => (
+              <ProductCard key={item.id} product={item} index={i} revealOnMount={i < 4} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

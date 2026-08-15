@@ -1,11 +1,16 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import GridViewToggle from './GridViewToggle';
 import { useGridView } from '../hooks/useGridView';
-import { products, FEATURED_COUNT } from '../data/products';
+import { api } from '../lib/api';
+
+const FEATURED_COUNT = 7;
 
 /* Fills the eighth cell of the 4-column grid, so the collage always reads as
-   two complete rows rather than a row with a hole in it. */
+   two complete rows rather than a row with a hole in it. The exact catalogue
+   size isn't shown any more — the real API is cursor-paginated, not a fixed
+   array with a `.length`, so there is no cheap total count to display. */
 function SeeAllTile() {
   return (
     <Link to="/shop" className="ks-seeall" aria-label="See the full collection">
@@ -21,7 +26,6 @@ function SeeAllTile() {
           <br />
           Collection
         </span>
-        <span className="ks-seeall-count">{products.length} sarees</span>
       </span>
     </Link>
   );
@@ -29,7 +33,22 @@ function SeeAllTile() {
 
 export default function ProductGrid() {
   const [view, setView] = useGridView();
-  const featured = products.slice(0, FEATURED_COUNT);
+  const [featured, setFeatured] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .listProducts({ limit: FEATURED_COUNT })
+      .then((page) => {
+        if (!cancelled) setFeatured(page.items);
+      })
+      .catch(() => {
+        if (!cancelled) setFeatured([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section

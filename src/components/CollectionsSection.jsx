@@ -1,53 +1,22 @@
-import { useRef, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { api } from '../lib/api';
 
-/* Product photography lives in public/collections/ and is served from the site
-   root. Each card crops its image to 3:4; if one fails to load the card falls
-   back to a woven pattern in the brand palette rather than a broken-image icon.
-   7.jpeg is currently spare — six cards, seven photos. */
-const collections = [
-  {
-    id: 'bridal',
-    name: 'Bridal & Wedding',
-    tagline: 'For the big day',
-    image: '/collections/3.jpeg',
-    alt: 'Bridal saree in molten orange and gold brocade with a deep purple zari border',
-  },
-  {
-    id: 'silk',
-    name: 'Pure Silk',
-    tagline: 'Kanchipuram, Banarasi & more',
-    image: '/collections/2.jpeg',
-    alt: 'Peacock-blue silk saree with a magenta contrast border of gold zari',
-  },
-  {
-    id: 'festive',
-    name: 'Party & Festive',
-    tagline: 'Dressed for the occasion',
-    image: '/collections/7.jpeg',
-    alt: 'Sea-green tissue silk saree draped to show a heavy gold zari pallu with floral motifs',
-  },
-  {
-    id: 'cotton',
-    name: 'Daily Cotton',
-    tagline: 'Light, breathable, everyday',
-    image: '/collections/6.jpeg',
-    alt: 'Mint green cotton saree with a fine silver border and a printed paisley pallu',
-  },
-  {
-    id: 'printed',
-    name: 'Printed Casuals',
-    tagline: 'Easy on the wallet',
-    image: '/collections/4.jpeg',
-    alt: 'Black and cream chequered saree with a thin gold border, draped on a mannequin',
-  },
-  {
-    id: 'handloom',
-    name: 'Handloom & Dyed',
-    tagline: 'Small batch, hand-finished',
-    image: '/collections/5.jpeg',
-    alt: 'Indigo blue saree with white resist-dyed diamond patterns and a silver border',
-  },
+/* Categories come from the real API now (`GET /public/categories`) instead
+   of a hardcoded list — but `Category` has no image or tagline field (only
+   products carry photos, via catalog images), so a card without a photo of
+   its own cycles through the same seven placeholder jpegs the old array
+   used, keyed by position rather than by category id. Real per-category
+   imagery is a real gap, not simulated here. */
+const PLACEHOLDER_IMAGES = [
+  '/collections/1.jpeg',
+  '/collections/2.jpeg',
+  '/collections/3.jpeg',
+  '/collections/4.jpeg',
+  '/collections/5.jpeg',
+  '/collections/6.jpeg',
+  '/collections/7.jpeg',
 ];
 
 /* Shown when a product image fails to load. */
@@ -131,9 +100,9 @@ function CollectionCard({ collection, index }) {
             </p>
           </div>
 
-          <a href={`#collection-${collection.id}`} className="ks-pill">
+          <Link to={`/shop?category=${collection.id}`} className="ks-pill">
             Explore
-          </a>
+          </Link>
         </div>
       </div>
     </article>
@@ -144,6 +113,31 @@ export default function CollectionsSection() {
   const sectionRef = useRef(null);
   const trackRef = useRef(null);
   const reduceMotion = useReducedMotion();
+  const [collections, setCollections] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .listCategories()
+      .then((categories) => {
+        if (cancelled) return;
+        setCollections(
+          categories.map((category, i) => ({
+            id: category.id,
+            name: category.name,
+            tagline: category.description || '',
+            image: PLACEHOLDER_IMAGES[i % PLACEHOLDER_IMAGES.length],
+            alt: category.name,
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setCollections([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   /* How far the track has to travel to bring its right edge into view. The
      section is then made that much taller than the viewport, so one pixel of

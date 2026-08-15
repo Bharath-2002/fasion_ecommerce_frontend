@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { inr } from '../data/products';
+import { api } from '../lib/api';
+import { formatPrice } from '../lib/money';
 
 function HeartIcon({ filled }) {
   return (
@@ -24,8 +25,34 @@ function HeartIcon({ filled }) {
    a re-evaluation. Animating on mount removes that race entirely. */
 export default function ProductCard({ product, index = 0, revealOnMount = false }) {
   const [liked, setLiked] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
   const [failed, setFailed] = useState(false);
   const reduceMotion = useReducedMotion();
+
+  // The public API has no bulk "images for these N products" route — each
+  // card fetches its own, the same known-interim shape the backend's own
+  // images route already documents (one presign per image server-side; one
+  // fetch per card here). No reset of imageUrl/failed at the top: every
+  // call site keys its `.map()` by product.id, so a different product is a
+  // fresh mount (fresh initial state) rather than this effect re-running
+  // against a reused instance.
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .listProductImages(product.id)
+      .then((images) => {
+        if (cancelled) return;
+        const primary = images.find((img) => img.is_primary) ?? images[0];
+        if (primary) setImageUrl(primary.download_url);
+        else setFailed(true);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
 
   // Stagger by column so each row appears to settle together
   const transition = { duration: 0.6, delay: (index % 4) * 0.07, ease: [0.22, 1, 0.36, 1] };
@@ -44,15 +71,17 @@ export default function ProductCard({ product, index = 0, revealOnMount = false 
         };
   }
 
+  const name = product.title || 'Untitled saree';
+
   return (
     <motion.article {...reveal} className="ks-product">
       <div className="ks-product-frame">
-        {failed ? (
+        {failed || !imageUrl ? (
           <div className="ks-product-fallback" aria-hidden="true" />
         ) : (
           <img
-            src={product.image}
-            alt={product.alt}
+            src={imageUrl}
+            alt={name}
             loading={index < 4 ? 'eager' : 'lazy'}
             decoding="async"
             onError={() => setFailed(true)}
@@ -72,9 +101,11 @@ export default function ProductCard({ product, index = 0, revealOnMount = false 
         <div className="ks-glass ks-glass--sm ks-frost">
           <div style={{ minWidth: 0 }}>
             <h3 className="ks-product-name">
-              <Link to={`/product/${product.id}`}>{product.name}</Link>
+              <Link to={`/product/${product.id}`}>{name}</Link>
             </h3>
-            <p className="ks-product-price">{inr.format(product.price)}</p>
+            <p className="ks-product-price">
+              {formatPrice(product.price_amount, product.price_currency)}
+            </p>
           </div>
 
           <button
@@ -82,9 +113,7 @@ export default function ProductCard({ product, index = 0, revealOnMount = false 
             className={liked ? 'ks-like is-liked' : 'ks-like'}
             onClick={() => setLiked((v) => !v)}
             aria-pressed={liked}
-            aria-label={
-              liked ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`
-            }
+            aria-label={liked ? `Remove ${name} from wishlist` : `Save ${name} to wishlist`}
           >
             <HeartIcon filled={liked} />
           </button>

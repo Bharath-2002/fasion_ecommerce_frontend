@@ -1,29 +1,91 @@
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import GridViewToggle from '../components/GridViewToggle';
 import { useGridView } from '../hooks/useGridView';
-import { products } from '../data/products';
+import { api } from '../lib/api';
 
 const PER_PAGE = 12;
 
+/* The backend is cursor-paginated (opaque tokens, forward-only, no total
+   count) rather than the old fixed array with a known `.length` — there is
+   no "jump to page 7" here, and no numbered page list, because there is
+   nothing to compute one from. Next/Previous only. The cursor that fetched
+   the *current* page lives in the URL (`?cursor=`) so a page can still be
+   linked and shared, and back/forward move through it the same way the old
+   `?page=` did; the history of cursors needed to go back further than one
+   step is kept in component state, not the URL, since only the current
+   position needs to be shareable. */
 export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useGridView();
-  const totalPages = Math.max(1, Math.ceil(products.length / PER_PAGE));
+  const [items, setItems] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [cursorStack, setCursorStack] = useState([]);
 
-  /* Page lives in the URL so a page of results can be linked and shared, and
-     so back/forward move through pages instead of leaving the shop. Clamped
-     because ?page=99 is one hand-edit away. */
-  const requested = Number.parseInt(searchParams.get('page') ?? '1', 10);
-  const page = Number.isNaN(requested) ? 1 : Math.min(Math.max(requested, 1), totalPages);
+  const currentCursor = searchParams.get('cursor');
+  const categoryId = searchParams.get('category');
 
-  const start = (page - 1) * PER_PAGE;
-  const visible = products.slice(start, start + PER_PAGE);
+  // A category switch is a different listing entirely - any cursors
+  // remembered for "Previous" belonged to the old one. Adjusting state
+  // during render (not in an effect) is React's own documented pattern for
+  // "reset some state when a prop changes" — https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prevCategoryId, setPrevCategoryId] = useState(categoryId);
+  if (categoryId !== prevCategoryId) {
+    setPrevCategoryId(categoryId);
+    setCursorStack([]);
+  }
 
-  // ScrollToTop reacts to the query change, so no manual scroll needed here.
-  const goTo = (next) => {
-    setSearchParams(next === 1 ? {} : { page: String(next) });
+  useEffect(() => {
+    let cancelled = false;
+    // The "loading" flag exists for the duration of this fetch; there is no
+    // prop/state to derive it from during render the way the reset above is
+    // derived from categoryId. The real fix (Suspense or a data-fetching
+    // library) is out of scope for this cutover.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    api
+      .listProducts({
+        categoryId: categoryId ?? undefined,
+        cursor: currentCursor ?? undefined,
+        limit: PER_PAGE,
+      })
+      .then((page) => {
+        if (cancelled) return;
+        setItems(page.items);
+        setNextCursor(page.next_cursor);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setItems([]);
+          setNextCursor(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentCursor, categoryId]);
+
+  const goNext = () => {
+    if (!nextCursor) return;
+    setCursorStack((prev) => [...prev, currentCursor]);
+    setSearchParams(
+      categoryId ? { category: categoryId, cursor: nextCursor } : { cursor: nextCursor }
+    );
   };
+
+  const goPrevious = () => {
+    const previous = cursorStack[cursorStack.length - 1];
+    setCursorStack((prev) => prev.slice(0, -1));
+    const next = previous ? { cursor: previous } : {};
+    setSearchParams(categoryId ? { category: categoryId, ...next } : next);
+  };
+
+  const hasPrevious = cursorStack.length > 0 || Boolean(currentCursor);
 
   return (
     <main
@@ -43,8 +105,12 @@ export default function ShopPage() {
         <GridViewToggle view={view} onChange={setView} />
       </div>
 
+      {!loading && items.length === 0 && (
+        <p style={{ padding: '0 var(--gutter)', opacity: 0.7 }}>No sarees to show yet.</p>
+      )}
+
       <div className={view === 'two' ? 'ks-grid ks-grid--two' : 'ks-grid'}>
-        {visible.map((product, i) => (
+        {items.map((product, i) => (
           <ProductCard
             key={product.id}
             product={product}
@@ -56,13 +122,13 @@ export default function ShopPage() {
         ))}
       </div>
 
-      {totalPages > 1 && (
+      {(hasPrevious || nextCursor) && (
         <nav className="ks-pagination" aria-label="Shop pages">
           <button
             type="button"
             className="ks-page-arrow"
-            onClick={() => goTo(page - 1)}
-            disabled={page === 1}
+            onClick={goPrevious}
+            disabled={!hasPrevious}
             aria-label="Previous page"
           >
             <svg width="16" height="10" viewBox="0 0 16 10" fill="none" aria-hidden="true">
@@ -71,27 +137,11 @@ export default function ShopPage() {
             </svg>
           </button>
 
-          <ol className="ks-page-list">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <li key={n}>
-                <button
-                  type="button"
-                  className={n === page ? 'ks-pagenum is-current' : 'ks-pagenum'}
-                  onClick={() => goTo(n)}
-                  aria-current={n === page ? 'page' : undefined}
-                  aria-label={`Page ${n}`}
-                >
-                  {n}
-                </button>
-              </li>
-            ))}
-          </ol>
-
           <button
             type="button"
             className="ks-page-arrow"
-            onClick={() => goTo(page + 1)}
-            disabled={page === totalPages}
+            onClick={goNext}
+            disabled={!nextCursor}
             aria-label="Next page"
           >
             <svg width="16" height="10" viewBox="0 0 16 10" fill="none" aria-hidden="true">
