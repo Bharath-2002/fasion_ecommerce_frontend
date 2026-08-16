@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 /* Router Link that framer-motion can animate */
 const MotionLink = motion.create(Link);
@@ -28,6 +29,38 @@ const navLinkStyle = {
   textDecoration: 'none',
   transition: 'opacity 0.3s',
 };
+
+/* Minimal by design — proves the login/bootstrap-owner chain works end to
+   end in a real browser. Not a real account menu (no tenant switcher, no
+   profile page); that's separate, not-yet-built work. */
+function AccountControl() {
+  const { isAuthenticated, claims, login, logout } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <button type="button" onClick={login} style={{ ...navLinkStyle, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        Sign in
+      </button>
+    );
+  }
+
+  const label = claims?.role
+    ? `${claims.role}${claims.is_platform_admin ? ' · platform admin' : ''}`
+    : claims?.is_platform_admin
+      ? 'platform admin'
+      : 'signed in';
+
+  return (
+    <button
+      type="button"
+      onClick={logout}
+      title="Sign out"
+      style={{ ...navLinkStyle, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+    >
+      {label}
+    </button>
+  );
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -116,6 +149,7 @@ export default function Navbar() {
               {item.label}
             </Link>
           ))}
+          <AccountControl />
         </div>
 
         {/* Hamburger — mobile only */}
